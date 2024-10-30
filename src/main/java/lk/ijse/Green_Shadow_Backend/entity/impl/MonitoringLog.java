@@ -17,9 +17,12 @@ import java.util.List;
 public class MonitoringLog implements SuperEntity {
     @Id
     private String logCode;
+    @Column(nullable = false)
     @Temporal(TemporalType.DATE)
     private Date logDate;
+    @Column(nullable = false)
     private String observation;
+    @Column(nullable = false)
     @Lob
     private String observedImage;
     @ManyToMany

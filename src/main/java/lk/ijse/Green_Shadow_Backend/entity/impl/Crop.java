@@ -17,11 +17,16 @@ import java.util.List;
 public class Crop implements SuperEntity {
     @Id
     private String cropCode;
+    @Column(nullable = false)
     private String commonName;
+    @Column(nullable = false, unique = true)
     private String scientificName;
+    @Column(nullable = false)
     private String category;
+    @Column(nullable = false)
     private String season;
     @Lob
+    @Column(nullable = false)
     private String cropImage;
     @ManyToOne
     @JoinColumn(name = "field_id")

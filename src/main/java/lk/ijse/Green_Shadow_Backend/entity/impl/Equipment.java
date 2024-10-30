@@ -16,13 +16,16 @@ import lombok.NoArgsConstructor;
 public class Equipment implements SuperEntity {
     @Id
     private String equipmentId;
+    @Column(nullable = false)
     private String name;
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private EquipmentType type;
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Status status;
-    @ManyToOne
-    @JoinColumn(name = "assigned_staff_id")
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_staff_id", referencedColumnName = "id")
     private Staff staff;
     @ManyToOne
     @JoinColumn(name = "assigned_field_id")

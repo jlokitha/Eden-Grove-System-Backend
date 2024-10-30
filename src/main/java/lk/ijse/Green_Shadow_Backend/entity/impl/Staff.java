@@ -28,8 +28,10 @@ public class Staff implements SuperEntity {
     private LocalDate dob;
     @Enumerated(EnumType.STRING)
     private Gender gender;
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Designation designation;
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role;
     @Column(nullable = false, unique = true)
@@ -42,17 +44,10 @@ public class Staff implements SuperEntity {
     private String postalCode;
     @CreationTimestamp
     private Timestamp joinedDate;
-    @ManyToMany
-    @JoinTable(
-            name = "field_staff",
-            joinColumns = @JoinColumn(name = "staff_id"),
-            inverseJoinColumns = @JoinColumn(name = "field_id")
-    )
+    @ManyToMany(mappedBy = "staffs", fetch = FetchType.LAZY)
     private List<Field> fields;
-    @OneToMany(mappedBy = "staff")
+    @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
     private List<Vehicle> vehicles;
-    @OneToMany(mappedBy = "staff")
-    private List<Equipment> equipments;
-    @ManyToMany(mappedBy = "staffs")
+    @ManyToMany(mappedBy = "staffs", fetch = FetchType.LAZY)
     private List<MonitoringLog> monitoringLogs;
 }
