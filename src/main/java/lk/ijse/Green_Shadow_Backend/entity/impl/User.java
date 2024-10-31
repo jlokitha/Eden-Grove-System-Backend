@@ -2,7 +2,6 @@ package lk.ijse.Green_Shadow_Backend.entity.impl;
 
 import jakarta.persistence.*;
 import lk.ijse.Green_Shadow_Backend.entity.SuperEntity;
-import lk.ijse.Green_Shadow_Backend.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,6 +17,5 @@ public class User implements SuperEntity {
     @Column(nullable = false)
     private String password;
     @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private Role role;
+    private String role;
 }
