@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lk.ijse.Green_Shadow_Backend.entity.SuperEntity;
 import lk.ijse.Green_Shadow_Backend.enums.Designation;
 import lk.ijse.Green_Shadow_Backend.enums.Gender;
-import lk.ijse.Green_Shadow_Backend.enums.Role;
+import lk.ijse.Green_Shadow_Backend.enums.StaffStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,28 +22,31 @@ import java.util.List;
 public class Staff implements SuperEntity {
     @Id
     private String id;
-    @Column(nullable = false)
+    @Column(length = 150, nullable = false)
     private String name;
     @Column(nullable = false)
     private LocalDate dob;
+    @Column(length = 10, nullable = false)
     @Enumerated(EnumType.STRING)
     private Gender gender;
-    @Column(nullable = false)
+    @Column(length = 30, nullable = false)
     @Enumerated(EnumType.STRING)
     private Designation designation;
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private Role role;
+    @Column(length = 20, nullable = false)
+    private String role;
     @Column(nullable = false, unique = true)
     private String email;
-    @Column(nullable = false)
+    @Column(length = 15, nullable = false)
     private String mobile;
     @Column(nullable = false)
     private String address;
-    @Column(nullable = false)
+    @Column(length = 10, nullable = false)
     private String postalCode;
     @CreationTimestamp
     private Timestamp joinedDate;
+    @Column(length = 10, nullable = false)
+    @Enumerated(EnumType.STRING)
+    private StaffStatus status;
     @ManyToMany(mappedBy = "staffs", fetch = FetchType.LAZY)
     private List<Field> fields;
     @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
