@@ -1,6 +1,5 @@
 package lk.ijse.Green_Shadow_Backend.entity.impl;
 
-
 import jakarta.persistence.*;
 import lk.ijse.Green_Shadow_Backend.entity.SuperEntity;
 import lk.ijse.Green_Shadow_Backend.enums.AvailabilityStatus;
@@ -18,19 +17,18 @@ import java.util.List;
 public class Crop implements SuperEntity {
     @Id
     private String cropCode;
-    @Column(nullable = false)
+    @Column(length = 100, nullable = false)
     private String commonName;
-    @Column(nullable = false, unique = true)
+    @Column(length = 150, nullable = false, unique = true)
     private String scientificName;
-    @Column(nullable = false)
+    @Column(length = 50, nullable = false)
     private String category;
-    @Column(nullable = false)
+    @Column(length = 30, nullable = false)
     private String season;
-    @Column(nullable = false)
+    @Column(length = 15, nullable = false)
     @Enumerated(EnumType.STRING)
     private AvailabilityStatus status;
-    @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String cropImage;
     @ManyToOne
     @JoinColumn(name = "field_id")

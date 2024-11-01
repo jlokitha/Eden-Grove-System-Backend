@@ -56,7 +56,6 @@ public class FieldServiceImpl implements FieldService {
             field.setStatus(AvailabilityStatus.AVAILABLE);
             fieldRepository.save(field);
         } catch (Exception e) {
-            e.printStackTrace();
             throw new DataPersistFailedException("Failed to save the field");
         }
     }
@@ -93,7 +92,6 @@ public class FieldServiceImpl implements FieldService {
             field.setEquipments(equipments);
             fieldRepository.save(field);
         } catch (Exception e) {
-            e.printStackTrace();
             throw new DataPersistFailedException("Failed to associate the field with crops and staffs");
         }
     }
@@ -111,7 +109,6 @@ public class FieldServiceImpl implements FieldService {
                 field.getStaffs().forEach(staff -> staff.getFields().remove(field));
                 fieldRepository.delete(field);
             } catch (Exception e) {
-                e.printStackTrace();
                 throw new DataPersistFailedException("Failed to delete the field");
             }
         }
