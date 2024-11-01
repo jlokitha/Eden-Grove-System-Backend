@@ -1,7 +1,9 @@
 package lk.ijse.Green_Shadow_Backend.entity.impl;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lk.ijse.Green_Shadow_Backend.entity.SuperEntity;
+import lk.ijse.Green_Shadow_Backend.enums.AvailabilityStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,18 +19,19 @@ import java.util.List;
 public class Field implements SuperEntity {
     @Id
     private String fCode;
-    @Column(nullable = false)
+    @Column(length = 100, nullable = false, unique = true)
     private String fieldName;
     @Column(nullable = false)
     private Double fieldSize;
     @Column(nullable = false)
     private Point fieldLocation;
-    @Column(nullable = false)
-    @Lob
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String fieldImage1;
-    @Column(nullable = false)
-    @Lob
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String fieldImage2;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private AvailabilityStatus status;
     @OneToMany(mappedBy = "field")
     private List<Crop> crops;
     @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, fetch = FetchType.LAZY)
@@ -38,7 +41,7 @@ public class Field implements SuperEntity {
             inverseJoinColumns = @JoinColumn(name = "staff_id")
     )
     private List<Staff> staffs;
-    @OneToMany(mappedBy = "field", orphanRemoval = true)
+    @OneToMany(mappedBy = "field")
     private List<Equipment> equipments;
     @ManyToMany(mappedBy = "fields")
     private List<MonitoringLog> monitoringLogs;
