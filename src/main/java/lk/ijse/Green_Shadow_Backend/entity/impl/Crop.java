@@ -3,6 +3,7 @@ package lk.ijse.Green_Shadow_Backend.entity.impl;
 
 import jakarta.persistence.*;
 import lk.ijse.Green_Shadow_Backend.entity.SuperEntity;
+import lk.ijse.Green_Shadow_Backend.enums.AvailabilityStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,6 +26,9 @@ public class Crop implements SuperEntity {
     private String category;
     @Column(nullable = false)
     private String season;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private AvailabilityStatus status;
     @Lob
     @Column(nullable = false)
     private String cropImage;

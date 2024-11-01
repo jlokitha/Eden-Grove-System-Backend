@@ -34,7 +34,7 @@ public class StaffServiceImpl implements StaffService {
             try {
                 Staff staff = mapping.convertToEntity(dto);
                 staff.setId(GenerateID.generateId(
-                        IdPrefix.STAFF.getPrefix(), staffRepository.findLastIdNumber())
+                        IdPrefix.STAFF.getPrefix(), (staffRepository.findLastIdNumber() + 1))
                 );
                 staff.setStatus(StaffStatus.ACTIVE);
                 staff.setName(dto.getFirstName() + " " + dto.getLastName());
