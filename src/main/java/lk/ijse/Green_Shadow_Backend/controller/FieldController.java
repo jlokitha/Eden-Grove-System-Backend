@@ -129,7 +129,7 @@ public class FieldController {
      * @param fieldId the ID of the field to retrieve, must match the pattern "F-XXX"
      * @return ResponseEntity containing the FieldDTO if found, or NOT_FOUND status if not
      */
-    @GetMapping("/{id}")
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<FieldDTO> findFieldById(
             @Pattern(regexp = "F-\\d{3,}", message = "ID must start with 'F-' followed by at least three digits (e.g., F-001)")
             @PathVariable("id") String fieldId) {
@@ -148,7 +148,7 @@ public class FieldController {
      *
      * @return ResponseEntity containing a list of FieldDTOs
      */
-    @GetMapping
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<FieldDTO>> findAllFields() {
         log.info("Retrieving all fields");
         List<FieldDTO> fieldDTOs = fieldService.findAllFields();
