@@ -15,16 +15,16 @@ import lombok.NoArgsConstructor;
 public class Vehicle implements SuperEntity {
     @Id
     private String vehicleCode;
-    @Column(nullable = false)
+    @Column(length = 20, nullable = false, unique = true)
     private String licensePlateNo;
-    @Column(nullable = false)
+    @Column(length = 50, nullable = false)
     private String category;
-    @Column(nullable = false)
+    @Column(length = 30, nullable = false)
     private String fuelType;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Status status;
-    @Column(nullable = false)
+    @Column(length = 200, nullable = false)
     private String remark;
     @ManyToOne
     @JoinColumn(name = "assigned_staff_id")
