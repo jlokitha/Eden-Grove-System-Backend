@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CropRepository extends JpaRepository<Crop, String> {
     boolean existsCropByScientificName(String scientificName);
-    @Query("SELECT COALESCE(MAX(CAST(SUBSTRING(f.fCode, 3) AS int)), 0) FROM Field f")
+    @Query("SELECT COALESCE(MAX(CAST(SUBSTRING(c.cropCode, 3) AS int)), 0) FROM Crop c")
     int findLastIdNumber();
 }

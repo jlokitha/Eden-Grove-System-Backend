@@ -8,6 +8,7 @@ import lk.ijse.Green_Shadow_Backend.enums.StaffStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.sql.Timestamp;
@@ -49,6 +50,7 @@ public class Staff implements SuperEntity {
     private StaffStatus status;
     @ManyToMany(mappedBy = "staffs", fetch = FetchType.LAZY)
     private List<Field> fields;
+    @ToString.Exclude
     @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
     private List<Vehicle> vehicles;
     @ManyToMany(mappedBy = "staffs", fetch = FetchType.LAZY)
