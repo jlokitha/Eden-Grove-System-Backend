@@ -1,12 +1,12 @@
 package lk.ijse.Green_Shadow_Backend.entity.impl;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lk.ijse.Green_Shadow_Backend.entity.SuperEntity;
 import lk.ijse.Green_Shadow_Backend.enums.AvailabilityStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.awt.*;
 import java.util.List;
@@ -32,9 +32,11 @@ public class Field implements SuperEntity {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private AvailabilityStatus status;
+    @ToString.Exclude
     @OneToMany(mappedBy = "field")
     private List<Crop> crops;
-    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @ManyToMany
     @JoinTable(
             name = "field_staff",
             joinColumns = @JoinColumn(name = "field_id"),
@@ -43,6 +45,7 @@ public class Field implements SuperEntity {
     private List<Staff> staffs;
     @OneToMany(mappedBy = "field")
     private List<Equipment> equipments;
-    @ManyToMany(mappedBy = "fields")
+    @ToString.Exclude
+    @OneToMany(mappedBy = "field")
     private List<MonitoringLog> monitoringLogs;
 }

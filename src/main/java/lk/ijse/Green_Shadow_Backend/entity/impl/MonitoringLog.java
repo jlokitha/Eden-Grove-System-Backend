@@ -5,6 +5,7 @@ import lk.ijse.Green_Shadow_Backend.entity.SuperEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.Date;
 import java.util.List;
@@ -18,20 +19,18 @@ public class MonitoringLog implements SuperEntity {
     @Id
     private String logCode;
     @Column(nullable = false)
-    @Temporal(TemporalType.DATE)
     private Date logDate;
     @Column(nullable = false)
+    private Date updatedDate;
+    @Column(length = 300, nullable = false)
     private String observation;
-    @Column(nullable = false)
-    @Lob
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String observedImage;
-    @ManyToMany
-    @JoinTable(
-            name = "log_field",
-            joinColumns = @JoinColumn(name = "log_id"),
-            inverseJoinColumns = @JoinColumn(name = "field_id")
-    )
-    private List<Field> fields;
+    @ToString.Exclude
+    @ManyToOne
+    @JoinColumn(name = "field_id")
+    private Field field;
+    @ToString.Exclude
     @ManyToMany
     @JoinTable(
             name = "log_crop",
@@ -39,6 +38,7 @@ public class MonitoringLog implements SuperEntity {
             inverseJoinColumns = @JoinColumn(name = "crop_id")
     )
     private List<Crop> crops;
+    @ToString.Exclude
     @ManyToMany
     @JoinTable(
             name = "log_staff",

@@ -16,7 +16,7 @@ public class MonitoringLogDTO implements SuperDTO {
     private Date logDate;
     private String observation;
     private String observedImage;
-    private List<String> fields;
-    private List<String> crops;
-    private List<String> staffs;
+    private FieldDTO field;
+    private List<CropDTO> crops;
+    private List<StaffDTO> staffs;
 }
