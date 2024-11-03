@@ -54,6 +54,7 @@ public class Staff implements SuperEntity {
     @ToString.Exclude
     @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
     private List<Vehicle> vehicles;
+    @ToString.Exclude
     @ManyToMany(mappedBy = "staffs", fetch = FetchType.LAZY)
     private List<MonitoringLog> monitoringLogs;
 }

@@ -6,6 +6,7 @@ import lk.ijse.Green_Shadow_Backend.enums.AvailabilityStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.List;
 
@@ -30,9 +31,11 @@ public class Crop implements SuperEntity {
     private AvailabilityStatus status;
     @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String cropImage;
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "field_id")
     private Field field;
+    @ToString.Exclude
     @ManyToMany(mappedBy = "crops")
     private List<MonitoringLog> monitoringLogs;
 }

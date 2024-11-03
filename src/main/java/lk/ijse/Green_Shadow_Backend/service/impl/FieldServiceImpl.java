@@ -50,11 +50,15 @@ public class FieldServiceImpl implements FieldService {
             field.setFieldLocation(stringToPointConverter(fieldDTO.getFieldLocation()));
             field.setFieldImage1(ConvertToBase64.toBase64Image(fieldDTO.getFieldImage1()));
             field.setFieldImage2(ConvertToBase64.toBase64Image(fieldDTO.getFieldImage2()));
-            field.setCrops(getCropList(fieldDTO.getCropCodes()));
             field.setStaffs(getStaffList(fieldDTO.getStaffIds()));
-            field.setEquipments(getEquipmentList(fieldDTO.getEquipmentCodes()));
+            List<Crop> crops = getCropList(fieldDTO.getCropCodes());
+            field.setCrops(crops);
+            List<Equipment> equipments = getEquipmentList(fieldDTO.getEquipmentCodes());
+            field.setEquipments(equipments);
             field.setStatus(AvailabilityStatus.AVAILABLE);
-            fieldRepository.save(field);
+            Field save = fieldRepository.save(field);
+            equipments.forEach(equipment -> equipment.setField(save));
+            crops.forEach(crop -> crop.setField(save));
         } catch (Exception e) {
             throw new DataPersistFailedException("Failed to save the field");
         }
@@ -164,7 +168,6 @@ public class FieldServiceImpl implements FieldService {
         List<Equipment> equipments = new ArrayList<>();
         for (String equipmentCode : equipmentCodes) {
             equipmentRepository.findById(equipmentCode)
-                    .filter(equipment -> equipment.getStatus() == Status.AVAILABLE)
                     .ifPresentOrElse(equipment -> {
                         equipment.setStatus(Status.IN_USE);
                         equipmentRepository.save(equipment);
