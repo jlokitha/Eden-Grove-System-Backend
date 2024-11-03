@@ -48,6 +48,7 @@ public class Staff implements SuperEntity {
     @Column(length = 10, nullable = false)
     @Enumerated(EnumType.STRING)
     private StaffStatus status;
+    @ToString.Exclude
     @ManyToMany(mappedBy = "staffs", fetch = FetchType.LAZY)
     private List<Field> fields;
     @ToString.Exclude

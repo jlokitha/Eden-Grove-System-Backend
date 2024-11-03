@@ -38,11 +38,11 @@ public class VehicleServiceImpl implements VehicleService {
             Vehicle vehicle = mapping.convertToEntity(vehicleDTO, Vehicle.class);
             vehicle.setVehicleCode(GenerateID.generateId(
                     IdPrefix.VEHICLE.getPrefix(), (vehicleRepository.findLastIdNumber() + 1)));
-            vehicle.setStatus(Status.AVAILABLE);
             Staff staff = staffRepository.findById(vehicleDTO.getStaff())
                     .filter(s -> s.getStatus().equals(StaffStatus.ACTIVE))
                     .orElseThrow(() -> new StaffNotFoundException("Active staff not found"));
             vehicle.setStaff(staff);
+            vehicle.setStatus(staff != null ? Status.IN_USE : Status.AVAILABLE);
             vehicleRepository.save(vehicle);
         } catch (StaffNotFoundException e) {
             throw e;
