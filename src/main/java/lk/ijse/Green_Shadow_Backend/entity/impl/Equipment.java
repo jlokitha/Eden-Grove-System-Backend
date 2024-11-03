@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 public class Equipment implements SuperEntity {
     @Id
     private String equipmentId;
-    @Column(nullable = false)
+    @Column(length = 100, nullable = false)
     private String name;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

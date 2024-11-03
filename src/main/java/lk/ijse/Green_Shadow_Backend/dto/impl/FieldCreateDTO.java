@@ -16,6 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 public class FieldCreateDTO implements SuperDTO {
+    @Pattern(regexp = "^F-\\d{3}$", message = "Field ID must start with 'F-' followed by three digits (e.g., F-001)")
     private String fCode;
     @NotNull(message = "Field name cannot be null")
     @Size(min = 3, max = 100, message = "Field name must be between 3 and 100 characters")

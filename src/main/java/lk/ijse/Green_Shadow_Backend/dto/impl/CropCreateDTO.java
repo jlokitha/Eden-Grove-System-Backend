@@ -2,6 +2,7 @@ package lk.ijse.Green_Shadow_Backend.dto.impl;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lk.ijse.Green_Shadow_Backend.dto.SuperDTO;
 import lombok.AllArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 @NoArgsConstructor
 @Data
 public class CropCreateDTO implements SuperDTO {
+    @Pattern(regexp = "^C-\\d{3}$", message = "Crop code must start with 'C-' followed by three digits (e.g., C-001)")
     private String cropCode;
     @NotBlank(message = "Common name must not be empty")
     @Size(min = 2, max = 100, message = "Common name must be between 2 and 100 characters")
