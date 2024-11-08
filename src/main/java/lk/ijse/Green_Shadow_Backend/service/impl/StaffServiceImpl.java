@@ -12,6 +12,7 @@ import lk.ijse.Green_Shadow_Backend.exception.DataPersistFailedException;
 import lk.ijse.Green_Shadow_Backend.exception.EmailAlreadyExistException;
 import lk.ijse.Green_Shadow_Backend.exception.StaffNotFoundException;
 import lk.ijse.Green_Shadow_Backend.repository.StaffRepository;
+import lk.ijse.Green_Shadow_Backend.repository.UserRepository;
 import lk.ijse.Green_Shadow_Backend.service.StaffService;
 import lk.ijse.Green_Shadow_Backend.utils.GenerateID;
 import lk.ijse.Green_Shadow_Backend.utils.Mapping;
@@ -25,6 +26,7 @@ import java.util.List;
 @Transactional
 public class StaffServiceImpl implements StaffService {
     private final StaffRepository staffRepository;
+    private final UserRepository userRepository;
     private final Mapping mapping;
     @Override
     public void saveStaff(RegisterStaffDTO dto) {
@@ -77,7 +79,11 @@ public class StaffServiceImpl implements StaffService {
         } else {
             try {
                 staffRepository.findById(id)
-                        .ifPresent(staff -> staff.setStatus(StaffStatus.DEACTIVATED));
+                        .ifPresent(staff -> {
+                            staff.setStatus(StaffStatus.DEACTIVATED);
+                            userRepository.findById(staff.getEmail())
+                                    .ifPresent(userRepository::delete);
+                        });
             } catch (Exception e) {
                 throw new DataPersistFailedException("Failed to delete the staff");
             }
