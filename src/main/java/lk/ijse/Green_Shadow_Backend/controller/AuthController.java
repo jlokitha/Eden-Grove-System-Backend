@@ -1,11 +1,9 @@
 package lk.ijse.Green_Shadow_Backend.controller;
 
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lk.ijse.Green_Shadow_Backend.dto.impl.UserCreateDTO;
-import lk.ijse.Green_Shadow_Backend.exception.DataPersistFailedException;
-import lk.ijse.Green_Shadow_Backend.exception.StaffNotFoundException;
-import lk.ijse.Green_Shadow_Backend.exception.UserAlreadyExistException;
-import lk.ijse.Green_Shadow_Backend.exception.UserNotFoundException;
+import lk.ijse.Green_Shadow_Backend.exception.*;
 import lk.ijse.Green_Shadow_Backend.jwtmodels.JwtAuthResponse;
 import lk.ijse.Green_Shadow_Backend.jwtmodels.SignIn;
 import lk.ijse.Green_Shadow_Backend.service.AuthenticationService;
@@ -18,11 +16,14 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("api/v1/auth")
 @RequiredArgsConstructor
 @Slf4j
 @Validated
+@CrossOrigin("*")
 public class AuthController {
     private final AuthenticationService authenticationService;
     /**
@@ -41,6 +42,9 @@ public class AuthController {
             JwtAuthResponse response = authenticationService.signUp(userCreateDTO);
             log.info("Successfully signed up user with email: {}", userCreateDTO.getEmail());
             return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (InvalidOtpException e) {
+            log.warn("Invalid OTP provided for email: {}", userCreateDTO.getEmail());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } catch (UserAlreadyExistException e) {
             log.warn("User already exists with email: {}", userCreateDTO.getEmail());
             return new ResponseEntity<>(HttpStatus.CONFLICT);
@@ -74,6 +78,52 @@ public class AuthController {
         } catch (BadCredentialsException e) {
             log.warn("Invalid credentials provided for user with email: {}", signIn.getEmail());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+    /**
+     * Handles the password reset request by verifying the OTP and resetting the user's password.
+     *
+     * @param userCreateDTO contains the email and new password for resetting the user's password.
+     * @return ResponseEntity with status OK if successful, or an error status if failed.
+     */
+    @PostMapping(
+            value = "/reset_password",
+            consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> resetPassword(@Valid @RequestBody UserCreateDTO userCreateDTO) {
+        try {
+            log.info("Attempting to reset password for email: {}", userCreateDTO.getEmail());
+            authenticationService.resetUserPassword(userCreateDTO);
+            log.info("Successfully reset password for email: {}", userCreateDTO.getEmail());
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (InvalidOtpException e) {
+            log.warn("Invalid OTP provided for email: {}", userCreateDTO.getEmail());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (UserNotFoundException e) {
+            log.warn("User not found for email: {}", userCreateDTO.getEmail());
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+    /**
+     * Sends an OTP to the user's email for verification.
+     *
+     * @param email the email of the user requesting OTP.
+     * @return ResponseEntity with status OK if successful, or an error status if failed.
+     */
+    @GetMapping(
+            value = "/request_otp",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> requestOtp(@RequestParam("email") String email) {
+        try {
+            log.info("Attempting to send OTP for email: {}", email);
+            authenticationService.verifyUserEmail(email);
+            log.info("Successfully sent OTP for email: {}", email);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (StaffNotFoundException e) {
+            log.warn("User not found for email: {}", email);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (MessagingException | IOException e) {
+            log.error("Error during email verification for email: {}. Error: {}", email, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
     /**
