@@ -22,9 +22,9 @@ import lk.ijse.Green_Shadow_Backend.utils.ConvertToBase64;
 import lk.ijse.Green_Shadow_Backend.utils.GenerateID;
 import lk.ijse.Green_Shadow_Backend.utils.Mapping;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Service;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -124,7 +124,7 @@ public class FieldServiceImpl implements FieldService {
                 .filter(field -> field.getStatus() == AvailabilityStatus.AVAILABLE)
                 .map(field -> {
                     FieldDTO fieldDTO = mapping.convertToDTO(field, FieldDTO.class);
-                    fieldDTO.setFieldLocation(field.getFieldLocation().x + "," + field.getFieldLocation().y);
+                    fieldDTO.setFieldLocation(field.getFieldLocation().getX() + "," + field.getFieldLocation().getY());
                     fieldDTO.setImage1(field.getFieldImage1());
                     fieldDTO.setImage2(field.getFieldImage2());
                     return fieldDTO;
@@ -138,7 +138,7 @@ public class FieldServiceImpl implements FieldService {
                 .filter(f -> f.getStatus() == AvailabilityStatus.AVAILABLE)
                 .map(field -> {
                     FieldDTO fieldDTO = mapping.convertToDTO(field, FieldDTO.class);
-                    fieldDTO.setFieldLocation(field.getFieldLocation().x + "," + field.getFieldLocation().y);
+                    fieldDTO.setFieldLocation(field.getFieldLocation().getX() + "," + field.getFieldLocation().getY());
                     fieldDTO.setImage1(field.getFieldImage1());
                     fieldDTO.setImage2(field.getFieldImage2());
                     return fieldDTO;
@@ -182,8 +182,8 @@ public class FieldServiceImpl implements FieldService {
     }
     public Point stringToPointConverter(String source) {
         String[] coords = source.split(",");
-        int x = Integer.parseInt(coords[0]);
-        int y = Integer.parseInt(coords[1]);
+        double x = Double.parseDouble(coords[0]);
+        double y = Double.parseDouble(coords[1]);
         return new Point(x, y);
     }
 }

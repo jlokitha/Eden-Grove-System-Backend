@@ -19,4 +19,8 @@ public class UserCreateDTO implements SuperDTO {
     @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%^&*(),.?\":{}|<>])(?=[a-zA-Z0-9!@#$%^&*(),.?\":{}|<>]*$).{6,}$",
             message = "Password must be at least 6 characters long, and contain at least one letter, one number, and one symbol. Only letters, numbers, and symbols are allowed.")
     private String password;
+    @NotBlank(message = "Otp cannot be blank")
+    @Pattern(regexp = "^\\d{6}$", message = "Otp must consist of exactly 6 numeric characters")
+    private String otp;
+    private String newPassword;
 }
