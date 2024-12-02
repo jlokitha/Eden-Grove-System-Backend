@@ -33,7 +33,7 @@ public class Staff implements SuperEntity {
     @Column(length = 30, nullable = false)
     @Enumerated(EnumType.STRING)
     private Designation designation;
-    @Column(length = 20, nullable = false)
+    @Column(length = 30, nullable = false)
     private String role;
     @Column(nullable = false, unique = true)
     private String email;

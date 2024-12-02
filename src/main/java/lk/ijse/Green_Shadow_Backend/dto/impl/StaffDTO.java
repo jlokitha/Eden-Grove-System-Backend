@@ -35,10 +35,6 @@ public class StaffDTO implements SuperDTO {
     @Pattern(regexp = "\\d{10}", message = "Mobile must be a valid phone number with exactly 10 digits")
     private String mobile;
     @NotBlank(message = "Address cannot be blank")
-    @Pattern(
-            regexp = "^[0-9]+\\s+[A-Za-z\\s]+,\\s+[A-Za-z\\s]+,\\s+[A-Za-z\\s]+$",
-            message = "Address must include house number, lane name, city name, and state name"
-    )
     private String address;
     @NotBlank(message = "Postal code cannot be blank")
     @Pattern(regexp = "\\d{5}", message = "Postal code must be a valid 5-digit number")

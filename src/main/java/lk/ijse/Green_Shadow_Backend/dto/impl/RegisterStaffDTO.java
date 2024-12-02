@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 
 @AllArgsConstructor
@@ -37,22 +38,10 @@ public class RegisterStaffDTO implements SuperDTO {
     @NotBlank(message = "Mobile cannot be blank")
     @Pattern(regexp = "\\d{10}", message = "Mobile must be a valid phone number with exactly 10 digits")
     private String mobile;
-    @NotBlank(message = "House number cannot be blank")
-    @Pattern(regexp = "^[0-9]+$", message = "House number must contain only digits")
-    private String houseNo;
-    @NotBlank(message = "Lane cannot be blank")
-    @Size(max = 100, message = "Lane name must be up to 100 characters")
-    @Pattern(regexp = "^[A-Za-z\\s]+$", message = "Lane name must only contain letters and spaces")
-    private String lane;
-    @NotBlank(message = "City cannot be blank")
-    @Size(max = 100, message = "City name must be up to 100 characters")
-    @Pattern(regexp = "^[A-Za-z\\s]+$", message = "City name must only contain letters and spaces")
-    private String city;
-    @NotBlank(message = "State cannot be blank")
-    @Size(max = 100, message = "State name must be up to 100 characters")
-    @Pattern(regexp = "^[A-Za-z\\s]+$", message = "State name must only contain letters and spaces")
-    private String state;
+    @NotBlank(message = "Address cannot be blank")
+    private String address;
     @NotBlank(message = "Postal code cannot be blank")
     @Pattern(regexp = "\\d{5}", message = "Postal code must be a valid 5-digit number")
     private String postalCode;
+    private LocalDate joinedDate;
 }

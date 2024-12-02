@@ -18,7 +18,6 @@ import lk.ijse.Green_Shadow_Backend.utils.EmailUtil;
 import lk.ijse.Green_Shadow_Backend.utils.Mapping;
 import lk.ijse.Green_Shadow_Backend.utils.OtpManager;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -36,7 +35,6 @@ import java.util.Map;
 public class AuthenticationServiceIMPL implements AuthenticationService {
     private final UserRepository userRepository;
     private final StaffRepository staffRepository;
-    @Qualifier("JWTService")
     private final JWTService jwtService;
     private final Mapping mapping;
     private final AuthenticationManager authenticationManager;
