@@ -2,9 +2,7 @@ package lk.ijse.Green_Shadow_Backend.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
-import lk.ijse.Green_Shadow_Backend.dto.impl.FieldAssociateDTO;
-import lk.ijse.Green_Shadow_Backend.dto.impl.FieldCreateDTO;
-import lk.ijse.Green_Shadow_Backend.dto.impl.FieldDTO;
+import lk.ijse.Green_Shadow_Backend.dto.impl.*;
 import lk.ijse.Green_Shadow_Backend.exception.*;
 import lk.ijse.Green_Shadow_Backend.service.FieldService;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @Validated
+@CrossOrigin(origins = "http://127.0.0.1:5500")
 public class FieldController {
     private final FieldService fieldService;
     /**
@@ -30,6 +30,7 @@ public class FieldController {
      * @param fieldDTO the data transfer object containing field details
      * @return ResponseEntity indicating the outcome of the operation
      */
+    @PreAuthorize("hasAnyRole('MANAGER', 'SCIENTIST')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> saveField(@Valid @ModelAttribute FieldCreateDTO fieldDTO) {
         try {
@@ -52,6 +53,7 @@ public class FieldController {
      * @param fieldDTO the data transfer object containing updated field details
      * @return ResponseEntity indicating the outcome of the operation
      */
+    @PreAuthorize("hasAnyRole('MANAGER', 'SCIENTIST')")
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> updateField(
             @Pattern(regexp = "F-\\d{3,}", message = "ID must start with 'F-' followed by at least three digits (e.g., F-001)")
@@ -72,37 +74,12 @@ public class FieldController {
         }
     }
     /**
-     * Updates the association of a field with the provided details.
-     *
-     * @param fieldId the ID of the field to update, must match the pattern "F-XXX"
-     * @param fieldAssociateDTO the data transfer object containing updated association details
-     * @return ResponseEntity indicating the outcome of the operation
-     */
-    @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> updateFieldAssociate(
-            @Pattern(regexp = "F-\\d{3,}", message = "ID must start with 'F-' followed by at least three digits (e.g., F-001)")
-            @PathVariable("id") String fieldId,
-            @Valid @RequestBody FieldAssociateDTO fieldAssociateDTO) {
-        try {
-            log.info("Attempting to update field association with ID: {}", fieldId);
-            fieldAssociateDTO.setFCode(fieldId);
-            fieldService.updateFieldAssociate(fieldAssociateDTO);
-            log.info("Successfully updated field association with ID: {}", fieldId);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (FieldNotFoundException | CropNotFoundException | StaffNotFoundException e) {
-            log.warn("Field association update failed for ID: {} | Field, Crop or Staff not found.", fieldId, e);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (DataPersistFailedException e) {
-            log.error("Failed to persist updated field association data for ID: {}", fieldId, e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-    /**
      * Deletes a field with the specified ID.
      *
      * @param fieldId the ID of the field to delete, must match the pattern "F-XXX"
      * @return ResponseEntity indicating the outcome of the operation
      */
+    @PreAuthorize("hasAnyRole('MANAGER', 'SCIENTIST')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteField(
             @Pattern(regexp = "F-\\d{3,}", message = "ID must start with 'F-' followed by at least three digits (e.g., F-001)")
@@ -115,12 +92,6 @@ public class FieldController {
         } catch (FieldNotFoundException e) {
             log.warn("Field not found for deletion with ID: {}", fieldId);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (FieldDeletionException e) {
-            log.warn("Conflict occurred while trying to delete field with ID: {}", fieldId, e);
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
-        } catch (DataPersistFailedException e) {
-            log.error("Failed to persist changes after deleting field with ID: {}", fieldId, e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     /**
@@ -149,10 +120,34 @@ public class FieldController {
      * @return ResponseEntity containing a list of FieldDTOs
      */
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<FieldDTO>> findAllFields() {
+    public ResponseEntity<List<FieldDTO>> findAllFields(
+            @RequestParam("page") int page,
+            @RequestParam("size") int size) {
         log.info("Retrieving all fields");
-        List<FieldDTO> fieldDTOs = fieldService.findAllFields();
+        List<FieldDTO> fieldDTOs = fieldService.findAllFields(page, size);
         log.info("Successfully retrieved {} fields", fieldDTOs.size());
         return new ResponseEntity<>(fieldDTOs, HttpStatus.OK);
+    }
+    /**
+     * Retrieves a list of field based on custom filter criteria.
+     *
+     * @param filterDTO the filter criteria encapsulated in a custom object
+     * @return ResponseEntity containing the filtered list of field
+     */
+    @PostMapping(
+            value = "/filter",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<FieldDTO>> filterField(@RequestBody FieldFilterDTO filterDTO) {
+        System.out.println("filterDTO = " + filterDTO);
+        log.info("Attempting to filter field with criteria: {}", filterDTO);
+        try {
+            List<FieldDTO> fieldDTOS = fieldService.filterFields(filterDTO);
+            log.info("Successfully filtered fields. Found {} results.", fieldDTOS.size());
+            return new ResponseEntity<>(fieldDTOS, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Failed to filter field", e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

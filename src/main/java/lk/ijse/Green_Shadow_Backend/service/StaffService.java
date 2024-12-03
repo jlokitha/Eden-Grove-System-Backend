@@ -15,5 +15,8 @@ public interface StaffService {
     StaffDTO findStaffById(String id);
     StaffDTO findStaffByToken(String token);
     List<StaffDTO> findAllStaff(int page, int size);
+
+    List<StaffDTO> findAllStaff();
+
     List<StaffDTO> filterStaff(StaffFilterDTO filterDTO);
 }
