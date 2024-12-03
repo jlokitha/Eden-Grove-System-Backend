@@ -2,6 +2,7 @@ package lk.ijse.Green_Shadow_Backend.service;
 
 import lk.ijse.Green_Shadow_Backend.dto.impl.MonitoringLogCreateDTO;
 import lk.ijse.Green_Shadow_Backend.dto.impl.MonitoringLogDTO;
+import lk.ijse.Green_Shadow_Backend.dto.impl.MonitoringLogFilterDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,7 +11,8 @@ import java.util.List;
 public interface MonitoringLogService {
     void saveMonitoringLog(MonitoringLogCreateDTO monitoringLogCreateDTO);
     void updateMonitoringLog(MonitoringLogCreateDTO monitoringLogCreateDTO);
-    void deleteMonitoringLog(String logCode);
     MonitoringLogDTO findMonitoringLogById(String logCode);
     List<MonitoringLogDTO> findAllMonitoringLogs();
+    List<MonitoringLogDTO> findAllMonitoringLogs(Integer page, Integer size);
+    List<MonitoringLogDTO> filterMonitoringLogs(MonitoringLogFilterDTO filterDTO);
 }

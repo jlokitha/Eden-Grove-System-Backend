@@ -157,4 +157,24 @@ public class CropController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    /**
+     * Retrieves a list of crops based on the field ID.
+     *
+     * @param fieldId the ID of the field to retrieve crops for
+     * @return ResponseEntity containing the list of crops
+     */
+    @GetMapping(value = "/field/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<CropDTO>> findCropsOfField(
+            @Pattern(regexp = "F-\\d{3,}", message = "ID must start with 'F-' followed by at least three digits (e.g., F-001)")
+            @PathVariable("id") String fieldId) {
+        try {
+            log.info("Attempting to retrieve crops for field with ID: {}", fieldId);
+            List<CropDTO> cropDtos = cropService.findCropsOfField(fieldId);
+            log.info("Successfully retrieved {} crops for field with ID: {}", cropDtos.size(), fieldId);
+            return new ResponseEntity<>(cropDtos, HttpStatus.OK);
+        } catch (FieldNotFoundException e) {
+            log.warn("Field not found for ID: {}", fieldId);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
 }

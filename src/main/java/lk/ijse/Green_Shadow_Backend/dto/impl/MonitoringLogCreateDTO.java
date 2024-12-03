@@ -15,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 public class MonitoringLogCreateDTO implements SuperDTO {
-    @Pattern(regexp = "^M-\\d{3}$", message = "logCode must start with 'M-' followed by at least three digits (e.g., M-001).")
+    @Pattern(regexp = "^L-\\d{3}$", message = "logCode must start with 'L-' followed by at least three digits (e.g., L-001).")
     private String logCode;
     @NotNull(message = "Observation cannot be null.")
     @Size(max = 500, message = "Observation must be at most 500 characters.")
