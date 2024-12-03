@@ -145,10 +145,19 @@ public class StaffController {
      */
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<StaffDTO>> findStaffs(
-            @RequestParam("page") int page,
-            @RequestParam("size") int size) {
+            @RequestParam(value = "page", required = false) Integer page,
+            @RequestParam(value = "size", required = false) Integer size) {
         log.info("Attempting to retrieve all staff members");
-        List<StaffDTO> staffList = staffService.findAllStaff(page, size);
+
+        List<StaffDTO> staffList;
+        if (page == null || size == null) {
+            log.info("No pagination parameters provided, retrieving all staff members");
+            staffList = staffService.findAllStaff();
+        } else {
+            log.info("Retrieving staff members with pagination - page: {}, size: {}", page, size);
+            staffList = staffService.findAllStaff(page, size);
+        }
+
         log.info("Successfully retrieved {} staff members", staffList.size());
         return new ResponseEntity<>(staffList, HttpStatus.OK);
     }

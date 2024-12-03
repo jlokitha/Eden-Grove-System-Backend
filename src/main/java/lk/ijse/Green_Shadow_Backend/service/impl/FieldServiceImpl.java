@@ -1,9 +1,7 @@
 package lk.ijse.Green_Shadow_Backend.service.impl;
 
 import jakarta.transaction.Transactional;
-import lk.ijse.Green_Shadow_Backend.dto.impl.FieldAssociateDTO;
-import lk.ijse.Green_Shadow_Backend.dto.impl.FieldCreateDTO;
-import lk.ijse.Green_Shadow_Backend.dto.impl.FieldDTO;
+import lk.ijse.Green_Shadow_Backend.dto.impl.*;
 import lk.ijse.Green_Shadow_Backend.entity.impl.Crop;
 import lk.ijse.Green_Shadow_Backend.entity.impl.Equipment;
 import lk.ijse.Green_Shadow_Backend.entity.impl.Field;
@@ -22,6 +20,8 @@ import lk.ijse.Green_Shadow_Backend.utils.ConvertToBase64;
 import lk.ijse.Green_Shadow_Backend.utils.GenerateID;
 import lk.ijse.Green_Shadow_Backend.utils.Mapping;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Service;
 
@@ -50,15 +50,12 @@ public class FieldServiceImpl implements FieldService {
             field.setFieldLocation(stringToPointConverter(fieldDTO.getFieldLocation()));
             field.setFieldImage1(ConvertToBase64.toBase64Image(fieldDTO.getFieldImage1()));
             field.setFieldImage2(ConvertToBase64.toBase64Image(fieldDTO.getFieldImage2()));
-            field.setStaffs(getStaffList(fieldDTO.getStaffIds()));
-            List<Crop> crops = getCropList(fieldDTO.getCropCodes());
-            field.setCrops(crops);
-            List<Equipment> equipments = getEquipmentList(fieldDTO.getEquipmentCodes());
+            field.setStaffs(fieldDTO.getStaffIds() != null ? getStaffList(fieldDTO.getStaffIds()) : null);
+            List<Equipment> equipments = fieldDTO.getEquipmentCodes() != null ? getEquipmentList(fieldDTO.getEquipmentCodes()) : null;
             field.setEquipments(equipments);
             field.setStatus(AvailabilityStatus.AVAILABLE);
             Field save = fieldRepository.save(field);
-            equipments.forEach(equipment -> equipment.setField(save));
-            crops.forEach(crop -> crop.setField(save));
+            if (equipments != null) equipments.forEach(equipment -> equipment.setField(save));
         } catch (Exception e) {
             throw new DataPersistFailedException("Failed to save the field");
         }
@@ -73,9 +70,8 @@ public class FieldServiceImpl implements FieldService {
                             field.setFieldLocation(stringToPointConverter(fieldDTO.getFieldLocation()));
                             field.setFieldImage1(ConvertToBase64.toBase64Image(fieldDTO.getFieldImage1()));
                             field.setFieldImage2(ConvertToBase64.toBase64Image(fieldDTO.getFieldImage2()));
-                            field.setCrops(getCropList(fieldDTO.getCropCodes()));
-                            field.setStaffs(getStaffList(fieldDTO.getStaffIds()));
-                            field.setEquipments(getEquipmentList(fieldDTO.getEquipmentCodes()));
+                            field.setStaffs(fieldDTO.getStaffIds() != null ? getStaffList(fieldDTO.getStaffIds()) : null);
+                            field.setEquipments(fieldDTO.getEquipmentCodes() != null ? getEquipmentList(fieldDTO.getEquipmentCodes()) : null);
                         },
                         () -> {
                             throw new FieldNotFoundException("Field not found");
@@ -83,40 +79,16 @@ public class FieldServiceImpl implements FieldService {
                 );
     }
     @Override
-    public void updateFieldAssociate(FieldAssociateDTO fieldAssociateDTO) {
-        Field field = fieldRepository.findById(fieldAssociateDTO.getFCode())
-                .filter(f -> f.getStatus() == AvailabilityStatus.AVAILABLE)
-                .orElseThrow(() -> new FieldNotFoundException("Field not found with ID: " + fieldAssociateDTO.getFCode()));
-        try {
-            List<Crop> crops = getCropList(fieldAssociateDTO.getCropCodes());
-            List<Staff> staffs = getStaffList(fieldAssociateDTO.getStaffIds());
-            List<Equipment> equipments = getEquipmentList(fieldAssociateDTO.getEquipmentCodes());
-            field.setCrops(crops);
-            field.setStaffs(staffs);
-            field.setEquipments(equipments);
-            fieldRepository.save(field);
-        } catch (Exception e) {
-            throw new DataPersistFailedException("Failed to associate the field with crops and staffs");
-        }
-    }
-    @Override
     public void deleteField(String fieldId) {
-        Field field = fieldRepository.findById(fieldId)
-                .orElseThrow(() -> new FieldNotFoundException("Field not found"));
-        if (!field.getMonitoringLogs().isEmpty()) {
-            field.setStatus(AvailabilityStatus.NOT_AVAILABLE);
-            fieldRepository.save(field);
-            throw new FieldDeletionException("Field cannot be deleted as it is referenced in MonitoringLog entries.");
-        } else {
-            try {
-                field.getCrops().forEach(crop -> crop.setField(null));
-                field.getStaffs().forEach(staff -> staff.getFields().remove(field));
-                fieldRepository.delete(field);
-            } catch (Exception e) {
-                throw new DataPersistFailedException("Failed to delete the field");
-            }
-        }
-
+        fieldRepository.findById(fieldId)
+                .ifPresentOrElse(
+                        field -> {
+                            field.setStatus(AvailabilityStatus.NOT_AVAILABLE);
+                        },
+                        () -> {
+                            throw new FieldNotFoundException("Field not found");
+                        }
+                );
     }
     @Override
     public FieldDTO findFieldById(String fieldId) {
@@ -125,24 +97,50 @@ public class FieldServiceImpl implements FieldService {
                 .map(field -> {
                     FieldDTO fieldDTO = mapping.convertToDTO(field, FieldDTO.class);
                     fieldDTO.setFieldLocation(field.getFieldLocation().getX() + "," + field.getFieldLocation().getY());
-                    fieldDTO.setImage1(field.getFieldImage1());
-                    fieldDTO.setImage2(field.getFieldImage2());
+                    fieldDTO.setFieldImage1(field.getFieldImage1());
+                    fieldDTO.setFieldImage2(field.getFieldImage2());
+                    fieldDTO.setCrops((field.getCrops() != null) ? getCropDtoList(field.getCrops()) : null);
+                    fieldDTO.setStaffs((field.getStaffs() != null) ? getStaffDtoList(field.getStaffs()) : null);
+                    fieldDTO.setEquipments((field.getEquipments() != null) ? getEquipmentDtoList(field.getEquipments()) : null);
                     return fieldDTO;
                 })
                 .orElseThrow(() -> new FieldNotFoundException("Field not found"));
     }
     @Override
-    public List<FieldDTO> findAllFields() {
-        return fieldRepository.findAll()
+    public List<FieldDTO> findAllFields(int page, int size) {
+       return fieldRepository.getAllField(PageRequest.of(page, size, Sort.by("fCode").descending()))
                 .stream()
-                .filter(f -> f.getStatus() == AvailabilityStatus.AVAILABLE)
                 .map(field -> {
                     FieldDTO fieldDTO = mapping.convertToDTO(field, FieldDTO.class);
                     fieldDTO.setFieldLocation(field.getFieldLocation().getX() + "," + field.getFieldLocation().getY());
-                    fieldDTO.setImage1(field.getFieldImage1());
-                    fieldDTO.setImage2(field.getFieldImage2());
+                    fieldDTO.setFieldImage1(field.getFieldImage1());
+                    fieldDTO.setFieldImage2(field.getFieldImage2());
                     return fieldDTO;
                 }).toList();
+    }
+    @Override
+    public List<FieldDTO> filterFields(FieldFilterDTO filterDTO) {
+        String nameFilter = filterDTO.getName() != null ? filterDTO.getName().toLowerCase() : null;
+        Double fromSize = filterDTO.getFromSize() != null ? filterDTO.getFromSize() : null;
+        Double toSize = filterDTO.getToSize() != null ? filterDTO.getToSize() : null;
+        List<Field> filteredFields = fieldRepository.findAllByFilters(
+                nameFilter,
+                fromSize,
+                toSize,
+                PageRequest.of(
+                        filterDTO.getPage(),
+                        filterDTO.getSize(),
+                        Sort.by("fCode").descending())
+        ).stream().filter(field -> field.getStatus() == AvailabilityStatus.AVAILABLE).toList();
+        List<FieldDTO> fieldDTOS = new ArrayList<>();
+        filteredFields.forEach(field -> {
+            FieldDTO fieldDTO = mapping.convertToDTO(field, FieldDTO.class);
+            fieldDTO.setFieldLocation(field.getFieldLocation().getX() + "," + field.getFieldLocation().getY());
+            fieldDTO.setFieldImage1(field.getFieldImage1());
+            fieldDTO.setFieldImage2(field.getFieldImage2());
+            fieldDTOS.add(fieldDTO);
+        });
+        return fieldDTOS;
     }
     private List<Staff> getStaffList(List<String> staffIds) {
         List<Staff> staffs = new ArrayList<>();
@@ -154,15 +152,25 @@ public class FieldServiceImpl implements FieldService {
         }
         return staffs;
     }
-    private List<Crop> getCropList(List<String> cropCodes) {
-        List<Crop> crops = new ArrayList<>();
-        for (String cropCode : cropCodes) {
-            Crop crop = cropRepository.findById(cropCode)
-                    .filter(c -> c.getStatus() == AvailabilityStatus.AVAILABLE)
-                    .orElseThrow(() -> new CropNotFoundException("Crop not found with ID: " + cropCode));
-            crops.add(crop);
-        }
-        return crops;
+    private List<CropDTO> getCropDtoList(List<Crop> crops) {
+        return crops.stream()
+                .map(crop -> {
+                    CropDTO cropDTO = mapping.convertToDTO(crop, CropDTO.class);
+                    cropDTO.setCropImage(null);
+                    return cropDTO;
+                }).toList();
+    }
+    private List<StaffDTO> getStaffDtoList(List<Staff> staffs) {
+        return staffs.stream()
+                .map(staff -> {
+                    return mapping.convertToDTO(staff, StaffDTO.class);
+                }).toList();
+    }
+    private List<EquipmentDTO> getEquipmentDtoList(List<Equipment> equipments) {
+        return equipments.stream()
+                .map(e -> {
+                    return mapping.convertToDTO(e, EquipmentDTO.class);
+                }).toList();
     }
     private List<Equipment> getEquipmentList(List<String> equipmentCodes) {
         List<Equipment> equipments = new ArrayList<>();

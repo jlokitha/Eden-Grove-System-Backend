@@ -120,8 +120,18 @@ public class StaffServiceImpl implements StaffService {
     @Override
     public List<StaffDTO> findAllStaff(int page, int size) {
         return mapping.convertToDTO(
-                staffRepository.getAllStaff(PageRequest.of(page, size, Sort.by("joinedDate").descending()))
+                staffRepository.getAllStaff(
+                        PageRequest.of(page, size, Sort.by("joinedDate").descending())
+                        )
                         .stream()
+                        .toList());
+    }
+    @Override
+    public List<StaffDTO> findAllStaff() {
+        return mapping.convertToDTO(
+                staffRepository.findAll(Sort.by("joinedDate")
+                                .descending())
+                        .stream().filter(s -> s.getStatus().equals(StaffStatus.ACTIVE))
                         .toList());
     }
     @Override

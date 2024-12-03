@@ -148,8 +148,8 @@ public class MonitoringLogServiceImpl implements MonitoringLogService {
                 .orElseThrow(() -> new FieldNotFoundException("Field with code " + fieldCode + " is not found."));
     }
     private FieldDTO clearFieldImages(FieldDTO fieldDTO) {
-        fieldDTO.setImage1(null);
-        fieldDTO.setImage2(null);
+        fieldDTO.setFieldImage1(null);
+        fieldDTO.setFieldImage2(null);
         return fieldDTO;
     }
     private List<CropDTO> clearCropImages(List<CropDTO> cropDTOs) {

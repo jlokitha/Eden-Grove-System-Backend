@@ -26,7 +26,8 @@ public class FieldCreateDTO implements SuperDTO {
     @Positive(message = "Field size must be a positive value")
     private Double fieldSize;
     @NotNull(message = "Field location cannot be null")
-    @Pattern(regexp = "^-?\\d+\\s*,\\s*-?\\d+$", message = "Field location must be in the format 'x, y' where x and y are integers")
+    @Pattern(regexp = "^-?\\d*\\.?\\d+\\s*,\\s*-?\\d*\\.?\\d+$",
+            message = "Field location must be in the format 'x, y' where x and y are decimal numbers")
     private String fieldLocation;
     @NotNull(message = "Field image 1 cannot be null")
     private MultipartFile fieldImage1;

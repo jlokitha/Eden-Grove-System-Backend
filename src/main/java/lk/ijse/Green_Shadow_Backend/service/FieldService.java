@@ -3,6 +3,7 @@ package lk.ijse.Green_Shadow_Backend.service;
 import lk.ijse.Green_Shadow_Backend.dto.impl.FieldAssociateDTO;
 import lk.ijse.Green_Shadow_Backend.dto.impl.FieldCreateDTO;
 import lk.ijse.Green_Shadow_Backend.dto.impl.FieldDTO;
+import lk.ijse.Green_Shadow_Backend.dto.impl.FieldFilterDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,6 +14,7 @@ public interface FieldService {
     void updateField(FieldCreateDTO fieldDTO);
     void deleteField(String fieldId);
     FieldDTO findFieldById(String fieldId);
-    List<FieldDTO> findAllFields();
-    void updateFieldAssociate(FieldAssociateDTO fieldAssociateDTO);
+    List<FieldDTO> findAllFields(int page, int size);
+
+    List<FieldDTO> filterFields(FieldFilterDTO filterDTO);
 }
