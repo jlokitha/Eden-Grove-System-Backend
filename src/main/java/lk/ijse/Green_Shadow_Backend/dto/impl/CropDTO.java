@@ -16,5 +16,5 @@ public class CropDTO implements SuperDTO {
     private String season;
     private String status;
     private String cropImage;
-    private String field;
+    private FieldDTO fieldDto;
 }

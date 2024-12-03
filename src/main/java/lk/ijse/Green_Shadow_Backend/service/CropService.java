@@ -1,7 +1,6 @@
 package lk.ijse.Green_Shadow_Backend.service;
 
-import lk.ijse.Green_Shadow_Backend.dto.impl.CropCreateDTO;
-import lk.ijse.Green_Shadow_Backend.dto.impl.CropDTO;
+import lk.ijse.Green_Shadow_Backend.dto.impl.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,5 +11,6 @@ public interface CropService {
     void updateCrop(CropCreateDTO cropDTO);
     void deleteCrop(String cropId);
     CropDTO findCropById(String cropId);
-    List<CropDTO> findAllCrops();
+    List<CropDTO> findAllCrops(Integer page, Integer size);
+    List<CropDTO> filterCrops(CropFilterDTO filterDTO);
 }

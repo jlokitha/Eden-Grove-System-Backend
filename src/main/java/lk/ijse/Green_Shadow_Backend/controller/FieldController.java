@@ -121,12 +121,21 @@ public class FieldController {
      */
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<FieldDTO>> findAllFields(
-            @RequestParam("page") int page,
-            @RequestParam("size") int size) {
-        log.info("Retrieving all fields");
-        List<FieldDTO> fieldDTOs = fieldService.findAllFields(page, size);
-        log.info("Successfully retrieved {} fields", fieldDTOs.size());
-        return new ResponseEntity<>(fieldDTOs, HttpStatus.OK);
+            @RequestParam(value = "page", required = false) Integer page,
+            @RequestParam(value = "size", required = false) Integer size) {
+        log.info("Attempting to retrieve all fields");
+
+        List<FieldDTO> fieldDTOS;
+        if (page == null || size == null) {
+            log.info("No pagination parameters provided, retrieving all fields");
+            fieldDTOS = fieldService.findAllFields();
+        } else {
+            log.info("Retrieving fields with pagination - page: {}, size: {}", page, size);
+            fieldDTOS = fieldService.findAllFields(page, size);
+        }
+
+        log.info("Successfully retrieved {} fields", fieldDTOS.size());
+        return new ResponseEntity<>(fieldDTOS, HttpStatus.OK);
     }
     /**
      * Retrieves a list of field based on custom filter criteria.
@@ -139,7 +148,6 @@ public class FieldController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<FieldDTO>> filterField(@RequestBody FieldFilterDTO filterDTO) {
-        System.out.println("filterDTO = " + filterDTO);
         log.info("Attempting to filter field with criteria: {}", filterDTO);
         try {
             List<FieldDTO> fieldDTOS = fieldService.filterFields(filterDTO);

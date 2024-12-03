@@ -30,4 +30,6 @@ public class CropCreateDTO implements SuperDTO {
     private String season;
     @NotNull(message = "Crop image must not be null")
     private MultipartFile cropImage;
+    @Pattern(regexp = "^F-\\d{3}$", message = "Field code must start with 'F-' followed by three digits (e.g., F-001)")
+    private String fCode;
 }

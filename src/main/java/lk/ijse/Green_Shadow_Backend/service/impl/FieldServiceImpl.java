@@ -108,8 +108,22 @@ public class FieldServiceImpl implements FieldService {
     }
     @Override
     public List<FieldDTO> findAllFields(int page, int size) {
-       return fieldRepository.getAllField(PageRequest.of(page, size, Sort.by("fCode").descending()))
+       return fieldRepository.findAll(PageRequest.of(page, size, Sort.by("fCode").descending()))
                 .stream()
+               .filter(field -> field.getStatus() == AvailabilityStatus.AVAILABLE)
+                .map(field -> {
+                    FieldDTO fieldDTO = mapping.convertToDTO(field, FieldDTO.class);
+                    fieldDTO.setFieldLocation(field.getFieldLocation().getX() + "," + field.getFieldLocation().getY());
+                    fieldDTO.setFieldImage1(field.getFieldImage1());
+                    fieldDTO.setFieldImage2(field.getFieldImage2());
+                    return fieldDTO;
+                }).toList();
+    }
+    @Override
+    public List<FieldDTO> findAllFields() {
+        return fieldRepository.findAll(Sort.by("fCode").descending())
+                .stream()
+                .filter(field -> field.getStatus() == AvailabilityStatus.AVAILABLE)
                 .map(field -> {
                     FieldDTO fieldDTO = mapping.convertToDTO(field, FieldDTO.class);
                     fieldDTO.setFieldLocation(field.getFieldLocation().getX() + "," + field.getFieldLocation().getY());

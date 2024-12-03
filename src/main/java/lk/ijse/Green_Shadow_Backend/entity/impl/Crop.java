@@ -1,5 +1,6 @@
 package lk.ijse.Green_Shadow_Backend.entity.impl;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lk.ijse.Green_Shadow_Backend.entity.SuperEntity;
 import lk.ijse.Green_Shadow_Backend.enums.AvailabilityStatus;
@@ -32,6 +33,7 @@ public class Crop implements SuperEntity {
     @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String cropImage;
     @ToString.Exclude
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "field_id")
     private Field field;
