@@ -25,7 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @Validated
-@CrossOrigin("*")
+@CrossOrigin(origins = "http://127.0.0.1:5500")
 public class StaffController {
     private final StaffService staffService;
     /**

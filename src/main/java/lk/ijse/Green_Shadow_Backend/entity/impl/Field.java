@@ -1,5 +1,6 @@
 package lk.ijse.Green_Shadow_Backend.entity.impl;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lk.ijse.Green_Shadow_Backend.entity.SuperEntity;
 import lk.ijse.Green_Shadow_Backend.enums.AvailabilityStatus;
@@ -33,6 +34,7 @@ public class Field implements SuperEntity {
     @Enumerated(EnumType.STRING)
     private AvailabilityStatus status;
     @ToString.Exclude
+    @JsonIgnore
     @OneToMany(mappedBy = "field")
     private List<Crop> crops;
     @ToString.Exclude

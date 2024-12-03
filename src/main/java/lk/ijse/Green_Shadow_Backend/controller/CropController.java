@@ -2,18 +2,16 @@ package lk.ijse.Green_Shadow_Backend.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
-import lk.ijse.Green_Shadow_Backend.dto.impl.CropCreateDTO;
-import lk.ijse.Green_Shadow_Backend.dto.impl.CropDTO;
-import lk.ijse.Green_Shadow_Backend.exception.CropAlreadyExistException;
-import lk.ijse.Green_Shadow_Backend.exception.CropDeletionException;
-import lk.ijse.Green_Shadow_Backend.exception.CropNotFoundException;
-import lk.ijse.Green_Shadow_Backend.exception.DataPersistFailedException;
+import lk.ijse.Green_Shadow_Backend.customeObj.ResponseObj;
+import lk.ijse.Green_Shadow_Backend.dto.impl.*;
+import lk.ijse.Green_Shadow_Backend.exception.*;
 import lk.ijse.Green_Shadow_Backend.service.CropService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @Validated
+@CrossOrigin(origins = "http://127.0.0.1:5500")
 public class CropController {
     private final CropService cropService;
     /**
@@ -32,16 +31,21 @@ public class CropController {
      * @param cropDTO the crop data to be saved
      * @return ResponseEntity indicating the result of the save operation
      */
+    @PreAuthorize("hasAnyRole('MANAGER', 'SCIENTIST')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Void> saveCrop(@Valid @ModelAttribute CropCreateDTO cropDTO) {
+    public ResponseEntity<ResponseObj> saveCrop(@Valid @ModelAttribute CropCreateDTO cropDTO) {
         try {
             log.info("Attempting to save crop: {}", cropDTO);
             cropService.saveCrop(cropDTO);
             log.info("Crop saved successfully: {}", cropDTO);
-            return new ResponseEntity<>(HttpStatus.CREATED);
+            return new ResponseEntity<>(
+                    ResponseObj.builder().code(201).message("Crop saved successfully")
+                            .build(), HttpStatus.CREATED);
         } catch (CropAlreadyExistException e) {
             log.warn("Crop already exists: {}", cropDTO);
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(
+                    ResponseObj.builder().code(400).message("Crop already exists")
+                    .build(), HttpStatus.BAD_REQUEST);
         } catch (DataPersistFailedException e) {
             log.error("Failed to save crop: {}", cropDTO, e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -54,8 +58,9 @@ public class CropController {
      * @param cropDTO the updated crop data
      * @return ResponseEntity indicating the result of the update operation
      */
+    @PreAuthorize("hasAnyRole('MANAGER', 'SCIENTIST')")
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Void> updateCrop(
+    public ResponseEntity<ResponseObj> updateCrop(
             @Pattern(regexp = "C-\\d{3,}", message = "ID must start with 'C-' followed by at least three digits (e.g., C-001)")
             @PathVariable("id") String cropCode,
             @Valid @ModelAttribute CropCreateDTO cropDTO) {
@@ -67,7 +72,9 @@ public class CropController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (CropNotFoundException e) {
             log.warn("Crop not found for ID: {}", cropCode);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(
+                    ResponseObj.builder().code(404).message("Crop not found.")
+                    .build(),HttpStatus.NOT_FOUND);
         } catch (DataPersistFailedException e) {
             log.error("Failed to update crop: {}", cropDTO, e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -79,6 +86,7 @@ public class CropController {
      * @param cropCode the ID of the crop to be deleted (must start with 'C-' followed by at least three digits)
      * @return ResponseEntity indicating the result of the deletion operation
      */
+    @PreAuthorize("hasAnyRole('MANAGER', 'SCIENTIST')")
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<Void> deleteCrop(
             @Pattern(regexp = "C-\\d{3,}", message = "ID must start with 'C-' followed by at least three digits (e.g., C-001)")
@@ -91,12 +99,6 @@ public class CropController {
         } catch (CropNotFoundException e) {
             log.warn("Crop not found for ID: {}", cropCode);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (CropDeletionException e) {
-            log.error("Conflict occurred while deleting crop with ID: {}", cropCode, e);
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
-        } catch (DataPersistFailedException e) {
-            log.error("Failed to delete crop with ID: {}", cropCode, e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     /**
@@ -125,10 +127,34 @@ public class CropController {
      * @return ResponseEntity containing a list of CropDTOs
      */
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> findAllCrops() {
+    public ResponseEntity<?> findAllCrops(
+            @RequestParam("page") Integer page,
+            @RequestParam("size") Integer size
+    ) {
         log.info("Fetching all crops.");
-        List<CropDTO> allCrops = cropService.findAllCrops();
+        List<CropDTO> allCrops = cropService.findAllCrops(page, size);
         log.info("Successfully retrieved {} crops.", allCrops.size());
         return new ResponseEntity<>(allCrops, HttpStatus.OK);
+    }
+    /**
+     * Retrieves a list of crop based on custom filter criteria.
+     *
+     * @param filterDTO the filter criteria encapsulated in a custom object
+     * @return ResponseEntity containing the filtered list of crop
+     */
+    @PostMapping(
+            value = "/filter",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<CropDTO>> filterField(@RequestBody CropFilterDTO filterDTO) {
+        log.info("Attempting to filter crops with criteria: {}", filterDTO);
+        try {
+            List<CropDTO> crops = cropService.filterCrops(filterDTO);
+            log.info("Successfully filtered crops. Found {} results.", crops.size());
+            return new ResponseEntity<>(crops, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Failed to filter crop", e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
