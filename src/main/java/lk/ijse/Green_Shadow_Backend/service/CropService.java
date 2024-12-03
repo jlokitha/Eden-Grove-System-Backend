@@ -13,4 +13,5 @@ public interface CropService {
     CropDTO findCropById(String cropId);
     List<CropDTO> findAllCrops(Integer page, Integer size);
     List<CropDTO> filterCrops(CropFilterDTO filterDTO);
+    List<CropDTO> findCropsOfField(String fieldId);
 }

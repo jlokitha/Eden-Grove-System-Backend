@@ -19,8 +19,12 @@ import lk.ijse.Green_Shadow_Backend.utils.ConvertToBase64;
 import lk.ijse.Green_Shadow_Backend.utils.GenerateID;
 import lk.ijse.Green_Shadow_Backend.utils.Mapping;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -77,22 +81,6 @@ public class MonitoringLogServiceImpl implements MonitoringLogService {
         }
     }
     @Override
-    public void deleteMonitoringLog(String logCode) {
-        try {
-            monitoringLogRepository.findById(logCode)
-                    .ifPresentOrElse(
-                            monitoringLogRepository::delete,
-                            () -> {
-                                throw new MonitoringLogNotFoundException("Monitoring log with code " + logCode + " is not found.");
-                            }
-                    );
-        } catch (MonitoringLogNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new DataPersistFailedException("Failed to delete the monitoring log.");
-        }
-    }
-    @Override
     public MonitoringLogDTO findMonitoringLogById(String logCode) {
         return monitoringLogRepository.findById(logCode)
                 .map(monitoringLog -> {
@@ -103,13 +91,53 @@ public class MonitoringLogServiceImpl implements MonitoringLogService {
                 })
                 .orElseThrow(() -> new MonitoringLogNotFoundException("Monitoring log with code " + logCode + " is not found."));
     }
+
     @Override
     public List<MonitoringLogDTO> findAllMonitoringLogs() {
-        return monitoringLogRepository.findAll()
+        return monitoringLogRepository.findAll(Sort.by("logCode").descending())
                 .stream().map(monitoringLog -> {
                     MonitoringLogDTO logDTO = mapping.convertToDTO(monitoringLog, MonitoringLogDTO.class);
                     logDTO.setField(clearFieldImages(logDTO.getField()));
-                    logDTO.setCrops(clearCropImages(logDTO.getCrops()));
+                    logDTO.setCrops(null);
+                    logDTO.setStaffs(null);
+                    return logDTO;
+                }).toList();
+    }
+
+    @Override
+    public List<MonitoringLogDTO> findAllMonitoringLogs(Integer page, Integer size) {
+        return monitoringLogRepository.findAll(PageRequest.of(page, size, Sort.by("logCode").descending()))
+                .stream().map(monitoringLog -> {
+                    MonitoringLogDTO logDTO = mapping.convertToDTO(monitoringLog, MonitoringLogDTO.class);
+                    logDTO.setField(clearFieldImages(logDTO.getField()));
+                    logDTO.setCrops(null);
+                    logDTO.setStaffs(null);
+                    return logDTO;
+                }).toList();
+    }
+    @Override
+    public List<MonitoringLogDTO> filterMonitoringLogs(MonitoringLogFilterDTO filterDTO) {
+        String nameFilter = filterDTO.getName() != null ? filterDTO.getName().toLowerCase() : null;
+        Date startOfDay = filterDTO.getDate() != null
+                ? Date.from(filterDTO.getDate().atStartOfDay(ZoneId.of("UTC")).toInstant())
+                : null;
+        Date endOfDay = filterDTO.getDate() != null
+                ? Date.from(filterDTO.getDate().atTime(LocalTime.MAX).atZone(ZoneId.of("UTC")).toInstant())
+                : null;
+
+        return monitoringLogRepository.findAllByFilters(
+                nameFilter,
+                startOfDay,
+                endOfDay,
+                PageRequest.of(
+                        filterDTO.getPage(),
+                        filterDTO.getSize(),
+                        Sort.by("logCode").descending())
+        ).stream()
+                .map(monitoringLog -> {
+                    MonitoringLogDTO logDTO = mapping.convertToDTO(monitoringLog, MonitoringLogDTO.class);
+                    logDTO.setField(clearFieldImages(logDTO.getField()));
+                    logDTO.setCrops(null);
                     logDTO.setStaffs(null);
                     return logDTO;
                 }).toList();

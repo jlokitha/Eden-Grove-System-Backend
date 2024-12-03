@@ -7,7 +7,7 @@ public enum IdPrefix {
     CROP("C"),
     EQUIPMENT("E"),
     FIELD("F"),
-    MONITORING_LOG("M"),
+    MONITORING_LOG("L"),
     STAFF("S"),
     USER("U"),
     VEHICLE("V");

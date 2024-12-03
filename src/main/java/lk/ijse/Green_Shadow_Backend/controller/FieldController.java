@@ -124,7 +124,6 @@ public class FieldController {
             @RequestParam(value = "page", required = false) Integer page,
             @RequestParam(value = "size", required = false) Integer size) {
         log.info("Attempting to retrieve all fields");
-
         List<FieldDTO> fieldDTOS;
         if (page == null || size == null) {
             log.info("No pagination parameters provided, retrieving all fields");
@@ -133,7 +132,6 @@ public class FieldController {
             log.info("Retrieving fields with pagination - page: {}, size: {}", page, size);
             fieldDTOS = fieldService.findAllFields(page, size);
         }
-
         log.info("Successfully retrieved {} fields", fieldDTOS.size());
         return new ResponseEntity<>(fieldDTOS, HttpStatus.OK);
     }
