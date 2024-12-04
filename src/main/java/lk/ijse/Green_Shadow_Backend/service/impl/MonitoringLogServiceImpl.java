@@ -20,6 +20,7 @@ import lk.ijse.Green_Shadow_Backend.utils.GenerateID;
 import lk.ijse.Green_Shadow_Backend.utils.Mapping;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -141,6 +142,15 @@ public class MonitoringLogServiceImpl implements MonitoringLogService {
                     logDTO.setStaffs(null);
                     return logDTO;
                 }).toList();
+    }
+    @Override
+    public List<TopFieldsDTO> getTopFields() {
+        Pageable topFive = PageRequest.of(0, 5);
+        List<Object[]> results = monitoringLogRepository.findTopFieldsWithMostLogs(topFive);
+
+        return results.stream()
+                .map(result -> new TopFieldsDTO((String) result[0], (Long) result[1]))
+                .toList();
     }
     public List<Staff> getStaffs(List<String> staffCodes) {
         List<Staff> staffs = new ArrayList<>();

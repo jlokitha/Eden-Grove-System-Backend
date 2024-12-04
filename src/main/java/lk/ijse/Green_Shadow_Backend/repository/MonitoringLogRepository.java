@@ -1,5 +1,6 @@
 package lk.ijse.Green_Shadow_Backend.repository;
 
+import lk.ijse.Green_Shadow_Backend.dto.impl.TopFieldsDTO;
 import lk.ijse.Green_Shadow_Backend.entity.impl.MonitoringLog;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,4 +19,9 @@ public interface MonitoringLogRepository extends JpaRepository<MonitoringLog, St
             "AND (:startOfDay IS NULL OR m.logDate >= :startOfDay) " +
             "AND (:endOfDay IS NULL OR m.logDate <= :endOfDay)")
     List<MonitoringLog> findAllByFilters(String name, Date startOfDay, Date endOfDay, Pageable pageable);
+    @Query("SELECT m.field.fieldName, COUNT(m) AS logCount " +
+            "FROM MonitoringLog m " +
+            "GROUP BY m.field.fCode " +
+            "ORDER BY logCount DESC")
+    List<Object[]> findTopFieldsWithMostLogs(Pageable pageable);
 }

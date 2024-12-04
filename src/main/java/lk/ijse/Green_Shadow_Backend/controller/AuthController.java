@@ -51,9 +51,9 @@ public class AuthController {
         } catch (StaffNotFoundException e) {
             log.error("Staff not found while registering user with email: {}", userCreateDTO.getEmail(), e);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (DataPersistFailedException e) {
-            log.error("Data persistence failed while registering user with email: {}", userCreateDTO.getEmail(), e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (UserNotAcceptableException e) {
+            log.error("Staff not acceptable while registering user with email: {}", userCreateDTO.getEmail(), e);
+            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
         }
     }
     /**

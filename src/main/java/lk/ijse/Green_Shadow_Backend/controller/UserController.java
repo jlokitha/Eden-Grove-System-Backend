@@ -4,8 +4,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lk.ijse.Green_Shadow_Backend.customeObj.ResponseObj;
 import lk.ijse.Green_Shadow_Backend.dto.impl.*;
-import lk.ijse.Green_Shadow_Backend.exception.DataPersistFailedException;
-import lk.ijse.Green_Shadow_Backend.exception.InvalidPasswordException;
 import lk.ijse.Green_Shadow_Backend.exception.UserNotAcceptableException;
 import lk.ijse.Green_Shadow_Backend.exception.UserNotFoundException;
 import lk.ijse.Green_Shadow_Backend.service.UserService;
@@ -41,7 +39,7 @@ public class UserController {
     public ResponseEntity<ResponseObj> updateUser(
             @Pattern(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$", message = "Email should be valid")
             @PathVariable ("email") String email,
-            @Valid @RequestBody UserCreateDTO userCreateDTO,
+            @Valid @RequestBody UserUpdateDTO userCreateDTO,
             @RequestHeader("Authorization") String authorization){
         try {
             log.info("Attempting to update user with email: {}", email);
@@ -59,11 +57,6 @@ public class UserController {
             return new ResponseEntity<>(
                     ResponseObj.builder().code(404).message("User not found").build(),
                     HttpStatus.NOT_FOUND);
-        } catch (InvalidPasswordException e) {
-            log.warn("User with email {} update failed. Reason: Invalid password.", email);
-            return new ResponseEntity<>(
-                    ResponseObj.builder().code(400).message("Invalid password").build(),
-                    HttpStatus.BAD_REQUEST);
         }
     }
     /**

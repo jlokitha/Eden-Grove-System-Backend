@@ -66,6 +66,9 @@ public class VehicleServiceImpl implements VehicleService {
                                 .filter(s -> s.getStatus().equals(StaffStatus.ACTIVE))
                                 .orElseThrow(() -> new StaffNotFoundException("Active staff not found")) : null;
                         vehicle.setStaff(staff);
+                        if (vehicle.getStatus().equals(Status.OUT_OF_SERVICE) || vehicle.getStatus().equals(Status.AVAILABLE)) {
+                            vehicle.setStaff(null);
+                        }
                     }, () -> {
                         throw new VehicleNotFoundException("Vehicle not found");
                     });
@@ -78,8 +81,10 @@ public class VehicleServiceImpl implements VehicleService {
     @Override
     public void deleteVehicle(String vehicleId) {
         vehicleRepository.findById(vehicleId)
-                .ifPresentOrElse(
-                        vehicleRepository::delete, () -> {
+                .ifPresentOrElse( vehicle -> {
+                    vehicle.setStatus(Status.DELETED);
+                    vehicle.setStaff(null);
+                }, () -> {
                             throw new VehicleNotFoundException("Vehicle not found");
                         });
     }
@@ -98,6 +103,7 @@ public class VehicleServiceImpl implements VehicleService {
     public List<VehicleDTO> findAllVehicles(Integer page, Integer size) {
         return vehicleRepository.findAll(PageRequest.of(page, size, Sort.by("vehicleCode").descending()))
                 .stream()
+                .filter(vehicle -> !vehicle.getStatus().equals(Status.DELETED))
                 .map(vehicle -> {
                     VehicleDTO vehicleDTO = mapping.convertToDTO(vehicle, VehicleDTO.class);
                     vehicleDTO.setStaff(null);
@@ -113,10 +119,19 @@ public class VehicleServiceImpl implements VehicleService {
                         PageRequest.of(filterDTO.getPage(), filterDTO.getSize(), Sort.by("vehicleCode").descending())
                 )
                 .stream()
+                .filter(vehicle -> !vehicle.getStatus().equals(Status.DELETED))
                 .map(vehicle -> {
                     VehicleDTO vehicleDTO = mapping.convertToDTO(vehicle, VehicleDTO.class);
                     vehicleDTO.setStaff(null);
                     return vehicleDTO;
                 }).toList();
+    }
+    @Override
+    public int getVehicleCount() {
+        return vehicleRepository.findAll()
+                .stream()
+                .filter(vehicle -> !vehicle.getStatus().equals(Status.DELETED))
+                .toList()
+                .size();
     }
 }

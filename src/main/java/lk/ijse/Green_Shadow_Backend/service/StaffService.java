@@ -17,4 +17,5 @@ public interface StaffService {
     List<StaffDTO> findAllStaff(int page, int size);
     List<StaffDTO> findAllStaff();
     List<StaffDTO> filterStaff(StaffFilterDTO filterDTO);
+    int getStaffCount();
 }

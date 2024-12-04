@@ -116,7 +116,8 @@ public class VehicleController {
             vehicleService.deleteVehicle(vehicleCode);
             log.info("Successfully deleted vehicle with ID: {}", vehicleCode);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (VehicleNotFoundException e) {
+        } catch (Exception e) {
+            e.printStackTrace();
             log.warn("Vehicle not found for ID: {}", vehicleCode);
             return new ResponseEntity<>(
                     ResponseObj.builder().code(404).message("Vehicle not found").build(),
