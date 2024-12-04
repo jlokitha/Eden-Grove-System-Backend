@@ -19,5 +19,4 @@ public interface VehicleRepository extends JpaRepository<Vehicle, String> {
             "(:category IS NULL OR LOWER(v.category) LIKE LOWER(CONCAT('%', :category, '%'))) " +
             "AND (:status IS NULL OR v.status = :status)")
     List<Vehicle> findAllByFilters(String category, Status status, Pageable pageable);
-
 }

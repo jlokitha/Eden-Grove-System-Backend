@@ -121,11 +121,6 @@ public class VehicleController {
             return new ResponseEntity<>(
                     ResponseObj.builder().code(404).message("Vehicle not found").build(),
                     HttpStatus.NOT_FOUND);
-        } catch (DataPersistFailedException e) {
-            log.error("Failed to delete vehicle with ID: {}", vehicleCode, e);
-            return new ResponseEntity<>(
-                    ResponseObj.builder().code(500).message("Failed to delete vehicle").build(),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     /**
@@ -155,8 +150,8 @@ public class VehicleController {
      */
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<VehicleDTO>> findAllVehicles(
-            @RequestParam(value = "page", required = false) Integer page,
-            @RequestParam(value = "size", required = false) Integer size) {
+            @RequestParam(value = "page") Integer page,
+            @RequestParam(value = "size") Integer size) {
         log.info("Attempting to retrieve all vehicles");
         List<VehicleDTO> vehicles = vehicleService.findAllVehicles(page, size);
         log.info("Successfully retrieved all vehicles");

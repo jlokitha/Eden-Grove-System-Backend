@@ -2,6 +2,9 @@ package lk.ijse.Green_Shadow_Backend.service.impl;
 
 import jakarta.transaction.Transactional;
 import lk.ijse.Green_Shadow_Backend.dto.impl.EquipmentDTO;
+import lk.ijse.Green_Shadow_Backend.dto.impl.EquipmentFilterDTO;
+import lk.ijse.Green_Shadow_Backend.dto.impl.FieldDTO;
+import lk.ijse.Green_Shadow_Backend.dto.impl.StaffDTO;
 import lk.ijse.Green_Shadow_Backend.entity.impl.Equipment;
 import lk.ijse.Green_Shadow_Backend.entity.impl.Field;
 import lk.ijse.Green_Shadow_Backend.entity.impl.Staff;
@@ -17,6 +20,8 @@ import lk.ijse.Green_Shadow_Backend.service.EquipmentService;
 import lk.ijse.Green_Shadow_Backend.utils.GenerateID;
 import lk.ijse.Green_Shadow_Backend.utils.Mapping;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,25 +36,26 @@ public class EquipmentServiceImpl implements EquipmentService {
     private final Mapping mapping;
     @Override
     public void saveEquipment(EquipmentDTO equipmentDTO) {
+        Field field = getField(equipmentDTO.getField());
+        Staff staff = getStaff(equipmentDTO.getStaff());
         try {
             Equipment equipment = mapping.convertToEntity(equipmentDTO, Equipment.class);
             equipment.setEquipmentId(
                     GenerateID.generateId(IdPrefix.EQUIPMENT.getPrefix(), (equipmentRepository.findLastIdNumber() + 1)));
             equipment.setType(EquipmentType.valueOf(equipmentDTO.getType()));
-            Field field = getField(equipmentDTO.getField());
-            Staff staff = getStaff(equipmentDTO.getStaff());
+
             equipment.setField(field);
             equipment.setStaff(staff);
-            equipment.setStatus(staff != null ? Status.IN_USE : Status.AVAILABLE);
+            equipment.setStatus(Status.valueOf(equipmentDTO.getStatus()));
             equipmentRepository.save(equipment);
-        } catch (FieldNotFoundException | StaffNotFoundException e) {
-            throw e;
         } catch (Exception e) {
             throw new DataPersistFailedException("Failed to save equipment");
         }
     }
     @Override
     public void updateEquipment(EquipmentDTO equipmentDTO) {
+        Field field = getField(equipmentDTO.getField());
+        Staff staff = getStaff(equipmentDTO.getStaff());
         try {
             System.out.println(equipmentDTO);
             equipmentRepository.findById(equipmentDTO.getEquipmentId())
@@ -57,8 +63,6 @@ public class EquipmentServiceImpl implements EquipmentService {
                             equipment -> {
                                 equipment.setName(equipmentDTO.getName());
                                 equipment.setType(EquipmentType.valueOf(equipmentDTO.getType()));
-                                Field field = getField(equipmentDTO.getField());
-                                Staff staff = getStaff(equipmentDTO.getStaff());
                                 equipment.setField(field);
                                 equipment.setStaff(staff);
                                 equipment.setStatus(Status.valueOf(equipmentDTO.getStatus()));
@@ -68,7 +72,7 @@ public class EquipmentServiceImpl implements EquipmentService {
                                 throw new EquipmentNotFoundException("Equipment not found");
                             });
 
-        } catch (FieldNotFoundException | StaffNotFoundException | EquipmentNotFoundException e) {
+        } catch (EquipmentNotFoundException e) {
             throw e;
         } catch (Exception e) {
             throw new DataPersistFailedException("Failed to update equipment");
@@ -76,38 +80,58 @@ public class EquipmentServiceImpl implements EquipmentService {
     }
     @Override
     public void deleteEquipment(String equipmentId) {
-        try {
-            equipmentRepository.findById(equipmentId)
-                    .ifPresentOrElse(
-                            equipment -> {
-                                equipment.setStaff(null);
-                                equipmentRepository.delete(equipment);
-                            },
-                            () -> {
-                                throw new EquipmentNotFoundException("Equipment not found");
-                            });
-        } catch (EquipmentNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new DataPersistFailedException("Failed to delete equipment");
-        }
+        equipmentRepository.findById(equipmentId)
+                .ifPresentOrElse(
+                        equipment -> {
+                            equipment.setStaff(null);
+                            equipmentRepository.delete(equipment);
+                        },
+                        () -> {
+                            throw new EquipmentNotFoundException("Equipment not found");
+                        });
     }
     @Override
     public EquipmentDTO findEquipmentById(String equipmentId) {
         return equipmentRepository.findById(equipmentId)
                 .map(equipment -> {
                     EquipmentDTO equipmentDTO = mapping.convertToDTO(equipment, EquipmentDTO.class);
-                    equipmentDTO.setStaff(equipment.getStaff() != null ? equipment.getStaff().getId() : null);
+                    equipmentDTO.setStaffDTO(
+                            equipment.getStaff() != null
+                                    ? mapping.convertToDTO(equipment.getStaff(), StaffDTO.class)
+                                    : null);
+                    equipmentDTO.setFieldDTO(
+                            equipment.getField() != null
+                                    ? mapping.convertToDTO(equipment.getField(), FieldDTO.class)
+                                    : null);
                     return equipmentDTO;
                 })
                 .orElseThrow(() -> new EquipmentNotFoundException("Equipment not found"));
     }
     @Override
-    public List<EquipmentDTO> findAllEquipments() {
-        return equipmentRepository.findAll()
+    public List<EquipmentDTO> findAllEquipments(Integer page, Integer size) {
+        return equipmentRepository.findAll(PageRequest.of(page, size, Sort.by( "name").descending()))
                 .stream().map(equipment -> {
                     EquipmentDTO equipmentDTO = mapping.convertToDTO(equipment, EquipmentDTO.class);
-                    equipmentDTO.setStaff(equipment.getStaff() != null ? equipment.getStaff().getId() : null);
+                    equipmentDTO.setStaffDTO(null);
+                    equipmentDTO.setFieldDTO(null);
+                    return equipmentDTO;
+                }).toList();
+    }
+    @Override
+    public List<EquipmentDTO> filterAllEquipments(EquipmentFilterDTO filterDTO) {
+        EquipmentType enumType = filterDTO.getType() != null ? EquipmentType.valueOf(filterDTO.getType().toUpperCase()) : null;
+        Status enumStatus = filterDTO.getStatus() != null ? Status.valueOf(filterDTO.getStatus().toUpperCase()) : null;
+        System.out.println("enumType = " + enumType);
+        System.out.println("enumStatus = " + enumStatus);
+        return equipmentRepository.findAllByFilters(
+                enumType,
+                enumStatus,
+                PageRequest.of(filterDTO.getPage(), filterDTO.getSize(), Sort.by("equipmentId").descending())
+                )
+                .stream().map(equipment -> {
+                    EquipmentDTO equipmentDTO = mapping.convertToDTO(equipment, EquipmentDTO.class);
+                    equipmentDTO.setStaffDTO(null);
+                    equipmentDTO.setFieldDTO(null);
                     return equipmentDTO;
                 }).toList();
     }

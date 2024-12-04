@@ -32,4 +32,6 @@ public class EquipmentDTO implements SuperDTO {
     private String staff;
     @Pattern(regexp = "^F-\\d{3}$", message = "Field ID must start with 'F-' followed by three digits (e.g., F-001)")
     private String field;
+    private StaffDTO staffDTO;
+    private FieldDTO fieldDTO;
 }
