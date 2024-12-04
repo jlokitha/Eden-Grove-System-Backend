@@ -57,7 +57,6 @@ public class EquipmentServiceImpl implements EquipmentService {
         Field field = getField(equipmentDTO.getField());
         Staff staff = getStaff(equipmentDTO.getStaff());
         try {
-            System.out.println(equipmentDTO);
             equipmentRepository.findById(equipmentDTO.getEquipmentId())
                     .ifPresentOrElse(
                             equipment -> {
@@ -67,6 +66,9 @@ public class EquipmentServiceImpl implements EquipmentService {
                                 equipment.setStaff(staff);
                                 equipment.setStatus(Status.valueOf(equipmentDTO.getStatus()));
                                 equipmentRepository.save(equipment);
+                                if (equipment.getStatus().equals(Status.OUT_OF_SERVICE) || equipment.getStatus().equals(Status.AVAILABLE)) {
+                                    equipment.setStaff(null);
+                                }
                             },
                             () -> {
                                 throw new EquipmentNotFoundException("Equipment not found");
@@ -80,15 +82,10 @@ public class EquipmentServiceImpl implements EquipmentService {
     }
     @Override
     public void deleteEquipment(String equipmentId) {
-        equipmentRepository.findById(equipmentId)
-                .ifPresentOrElse(
-                        equipment -> {
-                            equipment.setStaff(null);
-                            equipmentRepository.delete(equipment);
-                        },
-                        () -> {
-                            throw new EquipmentNotFoundException("Equipment not found");
-                        });
+        Equipment equipment = equipmentRepository.findById(equipmentId)
+                .orElseThrow(() -> new EquipmentNotFoundException("Equipment not found"));
+        equipment.setStatus(Status.valueOf("DELETED"));
+        equipment.setStaff(null);
     }
     @Override
     public EquipmentDTO findEquipmentById(String equipmentId) {
@@ -108,9 +105,23 @@ public class EquipmentServiceImpl implements EquipmentService {
                 .orElseThrow(() -> new EquipmentNotFoundException("Equipment not found"));
     }
     @Override
+    public List<EquipmentDTO> findAllEquipments() {
+        return equipmentRepository.findAll(Sort.by( "equipmentId").descending())
+                .stream()
+                .filter(equipment -> !equipment.getStatus().equals(Status.DELETED))
+                .map(equipment -> {
+                    EquipmentDTO equipmentDTO = mapping.convertToDTO(equipment, EquipmentDTO.class);
+                    equipmentDTO.setStaffDTO(null);
+                    equipmentDTO.setFieldDTO(null);
+                    return equipmentDTO;
+                }).toList();
+    }
+    @Override
     public List<EquipmentDTO> findAllEquipments(Integer page, Integer size) {
-        return equipmentRepository.findAll(PageRequest.of(page, size, Sort.by( "name").descending()))
-                .stream().map(equipment -> {
+        return equipmentRepository.findAll(PageRequest.of(page, size, Sort.by( "equipmentId").descending()))
+                .stream()
+                .filter(equipment -> !equipment.getStatus().equals(Status.DELETED))
+                .map(equipment -> {
                     EquipmentDTO equipmentDTO = mapping.convertToDTO(equipment, EquipmentDTO.class);
                     equipmentDTO.setStaffDTO(null);
                     equipmentDTO.setFieldDTO(null);
@@ -121,14 +132,14 @@ public class EquipmentServiceImpl implements EquipmentService {
     public List<EquipmentDTO> filterAllEquipments(EquipmentFilterDTO filterDTO) {
         EquipmentType enumType = filterDTO.getType() != null ? EquipmentType.valueOf(filterDTO.getType().toUpperCase()) : null;
         Status enumStatus = filterDTO.getStatus() != null ? Status.valueOf(filterDTO.getStatus().toUpperCase()) : null;
-        System.out.println("enumType = " + enumType);
-        System.out.println("enumStatus = " + enumStatus);
         return equipmentRepository.findAllByFilters(
                 enumType,
                 enumStatus,
                 PageRequest.of(filterDTO.getPage(), filterDTO.getSize(), Sort.by("equipmentId").descending())
                 )
-                .stream().map(equipment -> {
+                .stream()
+                .filter(equipment -> !equipment.getStatus().equals(Status.DELETED))
+                .map(equipment -> {
                     EquipmentDTO equipmentDTO = mapping.convertToDTO(equipment, EquipmentDTO.class);
                     equipmentDTO.setStaffDTO(null);
                     equipmentDTO.setFieldDTO(null);

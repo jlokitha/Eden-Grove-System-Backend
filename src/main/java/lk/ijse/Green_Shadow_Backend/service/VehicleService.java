@@ -14,4 +14,5 @@ public interface VehicleService {
     VehicleDTO findVehicleById(String vehicleId);
     List<VehicleDTO> findAllVehicles(Integer page, Integer size);
     List<VehicleDTO> filterVehicle(VehicleFilterDTO filterDTO);
+    int getVehicleCount();
 }

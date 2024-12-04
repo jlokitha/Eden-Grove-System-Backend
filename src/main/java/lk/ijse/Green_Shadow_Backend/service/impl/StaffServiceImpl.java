@@ -158,4 +158,11 @@ public class StaffServiceImpl implements StaffService {
         );
         return mapping.convertToDTO(filteredStaff);
     }
+    @Override
+    public int getStaffCount() {
+        return staffRepository.findAll()
+                .stream()
+                .filter(s -> s.getStatus().equals(StaffStatus.ACTIVE))
+                .toList().size();
+    }
 }

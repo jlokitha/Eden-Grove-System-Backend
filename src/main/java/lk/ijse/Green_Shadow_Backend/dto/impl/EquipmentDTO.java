@@ -24,7 +24,7 @@ public class EquipmentDTO implements SuperDTO {
     )
     private String type;
     @Pattern(
-            regexp = "AVAILABLE|OUT_OF_SERVICE|IN_USE|UNDER_MAINTENANCE",
+            regexp = "AVAILABLE|OUT_OF_SERVICE|IN_USE|UNDER_MAINTENANCE|DELETED",
             message = "Status must be one of the following: AVAILABLE, OUT_OF_SERVICE, IN_USE, or UNDER_MAINTENANCE"
     )
     private String status;

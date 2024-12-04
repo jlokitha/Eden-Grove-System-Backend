@@ -4,7 +4,7 @@ import jakarta.transaction.Transactional;
 import lk.ijse.Green_Shadow_Backend.dto.impl.UserCreateDTO;
 import lk.ijse.Green_Shadow_Backend.dto.impl.UserDTO;
 import lk.ijse.Green_Shadow_Backend.dto.impl.UserFilterDTO;
-import lk.ijse.Green_Shadow_Backend.exception.InvalidPasswordException;
+import lk.ijse.Green_Shadow_Backend.dto.impl.UserUpdateDTO;
 import lk.ijse.Green_Shadow_Backend.exception.UserNotAcceptableException;
 import lk.ijse.Green_Shadow_Backend.exception.UserNotFoundException;
 import lk.ijse.Green_Shadow_Backend.repository.StaffRepository;
@@ -30,24 +30,22 @@ public class UserServiceIMPL implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final JWTService jwtService;
     @Override
-    public void updateUser(UserCreateDTO userCreateDTO, String token) {
+    public void updateUser(UserUpdateDTO dto, String token) {
         try {
-            userRepository.findById(userCreateDTO.getEmail())
+            userRepository.findById(dto.getEmail())
                     .ifPresentOrElse(
                             user -> {
                                 if (!jwtService.extractUsername(token.substring(7)).equals(user.getEmail())) {
                                     throw new UserNotAcceptableException("User not acceptable");
-                                } else if (!passwordEncoder.matches(userCreateDTO.getPassword(), user.getPassword())) {
-                                    throw new InvalidPasswordException("Invalid password");
                                 } else {
-                                    user.setPassword(passwordEncoder.encode(userCreateDTO.getNewPassword()));
+                                    user.setPassword(passwordEncoder.encode(dto.getPassword()));
                                 }
                             },
                             () -> {
                                 throw new UserNotFoundException("User not found");
                             }
                     );
-        } catch (UserNotFoundException | UserNotAcceptableException | InvalidPasswordException e) {
+        } catch (UserNotFoundException | UserNotAcceptableException e) {
             throw e;
         }
     }

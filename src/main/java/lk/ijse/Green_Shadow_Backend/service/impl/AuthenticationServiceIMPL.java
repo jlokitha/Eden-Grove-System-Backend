@@ -53,17 +53,16 @@ public class AuthenticationServiceIMPL implements AuthenticationService {
             Staff staff = staffRepository.findStaffByEmail(userCreateDTO.getEmail())
                     .filter(s -> s.getStatus().equals(StaffStatus.ACTIVE))
                     .orElseThrow(() -> new StaffNotFoundException("Staff not found"));
+            if (staff.getRole().equals("OTHER")) {
+                throw new UserNotAcceptableException("Staff not found");
+            }
             try {
-                if (staff.getRole().equals("OTHER")) {
-                    throw new StaffNotFoundException("Staff not found");
-                } else {
-                    User user = mapping.convertToEntity(userCreateDTO, User.class);
-                    user.setPassword(passwordEncoder.encode(user.getPassword()));
-                    user.setRole(staff.getRole());
-                    User save = userRepository.save(user);
-                    String token = jwtService.generateToken(save);
-                    return JwtAuthResponse.builder().token(token).build();
-                }
+                User user = mapping.convertToEntity(userCreateDTO, User.class);
+                user.setPassword(passwordEncoder.encode(user.getPassword()));
+                user.setRole(staff.getRole());
+                User save = userRepository.save(user);
+                String token = jwtService.generateToken(save);
+                return JwtAuthResponse.builder().token(token).build();
             } catch (Exception e) {
                 throw new DataPersistFailedException("User registration failed");
             }

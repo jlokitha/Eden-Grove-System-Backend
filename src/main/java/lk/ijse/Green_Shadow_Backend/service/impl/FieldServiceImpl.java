@@ -84,6 +84,10 @@ public class FieldServiceImpl implements FieldService {
                 .ifPresentOrElse(
                         field -> {
                             field.setStatus(AvailabilityStatus.NOT_AVAILABLE);
+                            field.getEquipments().forEach(equipment -> {
+                                equipment.setStatus(Status.AVAILABLE);
+                                equipment.setField(null);
+                            });
                         },
                         () -> {
                             throw new FieldNotFoundException("Field not found");
@@ -155,6 +159,26 @@ public class FieldServiceImpl implements FieldService {
             fieldDTOS.add(fieldDTO);
         });
         return fieldDTOS;
+    }
+    @Override
+    public int getFieldCount() {
+        return fieldRepository.findAll()
+                .stream()
+                .filter(field -> field.getStatus() == AvailabilityStatus.AVAILABLE)
+                .toList().size();
+    }
+    @Override
+    public List<FieldDashboardDTO> getFieldListDashboard(int page, int size) {
+        return fieldRepository.findAll(PageRequest.of(page, size, Sort.by("fCode").descending()))
+                .stream()
+                .filter(field -> field.getStatus() == AvailabilityStatus.AVAILABLE)
+                .map(field -> {
+                    FieldDashboardDTO dto = mapping.convertToDTO(field, FieldDashboardDTO.class);
+                    dto.setFieldImage1(field.getFieldImage1());
+                    dto.setStaffList((field.getStaffs() != null) ? field.getStaffs().size() : 0);
+                    dto.setCropList((field.getCrops() != null) ? field.getCrops().size() : 0);
+                    return dto;
+                }).toList();
     }
     private List<Staff> getStaffList(List<String> staffIds) {
         List<Staff> staffs = new ArrayList<>();

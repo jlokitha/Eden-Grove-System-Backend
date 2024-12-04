@@ -12,6 +12,7 @@ public interface EquipmentService {
     void updateEquipment(EquipmentDTO equipmentDTO);
     void deleteEquipment(String equipmentId);
     EquipmentDTO findEquipmentById(String equipmentId);
+    List<EquipmentDTO> findAllEquipments();
     List<EquipmentDTO> findAllEquipments(Integer page, Integer size);
     List<EquipmentDTO> filterAllEquipments(EquipmentFilterDTO filterDTO);
 }

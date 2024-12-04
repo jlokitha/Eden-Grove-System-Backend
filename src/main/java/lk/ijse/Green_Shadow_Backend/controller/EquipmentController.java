@@ -3,10 +3,7 @@ package lk.ijse.Green_Shadow_Backend.controller;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lk.ijse.Green_Shadow_Backend.customeObj.ResponseObj;
-import lk.ijse.Green_Shadow_Backend.dto.impl.EquipmentDTO;
-import lk.ijse.Green_Shadow_Backend.dto.impl.EquipmentFilterDTO;
-import lk.ijse.Green_Shadow_Backend.dto.impl.VehicleDTO;
-import lk.ijse.Green_Shadow_Backend.dto.impl.VehicleFilterDTO;
+import lk.ijse.Green_Shadow_Backend.dto.impl.*;
 import lk.ijse.Green_Shadow_Backend.exception.DataPersistFailedException;
 import lk.ijse.Green_Shadow_Backend.exception.EquipmentNotFoundException;
 import lk.ijse.Green_Shadow_Backend.exception.FieldNotFoundException;
@@ -155,12 +152,19 @@ public class EquipmentController {
      */
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<EquipmentDTO>> findAllEquipment(
-            @RequestParam(value = "page") Integer page,
-            @RequestParam(value = "size") Integer size) {
-        log.info("Attempting to find all equipment");
-        List<EquipmentDTO> equipmentDTOs = equipmentService.findAllEquipments(page, size);
-        log.info("Successfully found all equipment");
-        return new ResponseEntity<>(equipmentDTOs, HttpStatus.OK);
+            @RequestParam(value = "page", required = false) Integer page,
+            @RequestParam(value = "size", required = false) Integer size) {
+        log.info("Attempting to retrieve all equipments");
+        List<EquipmentDTO> equipmentDTOS;
+        if (page == null || size == null) {
+            log.info("No pagination parameters provided, retrieving all equipments");
+            equipmentDTOS = equipmentService.findAllEquipments();
+        } else {
+            log.info("Retrieving equipments with pagination - page: {}, size: {}", page, size);
+            equipmentDTOS = equipmentService.findAllEquipments(page, size);
+        }
+        log.info("Successfully retrieved {} equipments", equipmentDTOS.size());
+        return new ResponseEntity<>(equipmentDTOS, HttpStatus.OK);
     }
     /**
      * Retrieves a list of equipment based on custom filter criteria.

@@ -121,12 +121,19 @@ public class CropServiceImpl implements CropService {
                 .orElseThrow(() -> new FieldNotFoundException("Field not found"));
         return cropRepository.findAll().stream()
                 .filter(crop -> crop.getStatus().equals(AvailabilityStatus.AVAILABLE))
-                .filter(crop -> crop.getField().getFCode().equals(fieldId))
+                .filter(crop -> crop.getField() != null && crop.getField().getFCode().equals(fieldId))
                 .map(crop -> {
                     CropDTO cropDTO = mapping.convertToDTO(crop, CropDTO.class);
                     cropDTO.setFieldDto(null);
                     return cropDTO;
                 }).toList();
+    }
+    @Override
+    public int getCropCount() {
+        return cropRepository.findAll()
+                .stream()
+                .filter(crop -> crop.getStatus().equals(AvailabilityStatus.AVAILABLE))
+                .toList().size();
     }
     private FieldDTO getFieldDTO(Field field) {
         FieldDTO fieldDTO = mapping.convertToDTO(field, FieldDTO.class);
