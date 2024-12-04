@@ -24,7 +24,7 @@ public class Vehicle implements SuperEntity {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Status status;
-    @Column(length = 200, nullable = false)
+    @Column(length = 300, nullable = false)
     private String remark;
     @ManyToOne
     @JoinColumn(name = "assigned_staff_id")

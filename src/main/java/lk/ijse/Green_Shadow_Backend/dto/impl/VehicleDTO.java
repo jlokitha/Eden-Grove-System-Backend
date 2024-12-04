@@ -26,8 +26,9 @@ public class VehicleDTO implements SuperDTO {
     @Pattern(regexp = "AVAILABLE|OUT_OF_SERVICE|IN_USE|UNDER_MAINTENANCE",
             message = "Status must be 'AVAILABLE', 'OUT_OF_SERVICE', 'IN_USE', or 'UNDER_MAINTENANCE'")
     private String status;
-    @Size(max = 200, message = "Remark must be at most 200 characters")
+    @Size(max = 300, message = "Remark must be at most 200 characters")
     private String remark;
     @Pattern(regexp = "^S-\\d{3}$", message = "Staff ID must start with 'S-' followed by three digits (e.g., S-001)")
     private String staff;
+    private StaffDTO staffDTO;
 }
