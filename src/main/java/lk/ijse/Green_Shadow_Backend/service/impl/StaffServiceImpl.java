@@ -89,19 +89,27 @@ public class StaffServiceImpl implements StaffService {
     public void deleteStaff(String id) {
         if (!staffRepository.existsById(id)) {
             throw new StaffNotFoundException("Staff not found");
-        } else {
-            try {
-                staffRepository.findById(id)
-                        .ifPresent(staff -> {
-                            staff.setStatus(StaffStatus.DEACTIVATED);
-                            userRepository.findById(staff.getEmail())
-                                    .ifPresent(userRepository::delete);
-                        });
-            } catch (Exception e) {
-                throw new DataPersistFailedException("Failed to delete the staff");
-            }
+        }
+        try {
+            staffRepository.findById(id).ifPresent(staff -> {
+                if (staff.getFields() != null) {
+                    staff.getFields().forEach(field -> field.getStaffs().remove(staff));
+                    staff.getFields().clear();
+                }
+                if (staff.getVehicles() != null) {
+                    staff.getVehicles().forEach(vehicle -> vehicle.setStaff(null));
+                    staff.getVehicles().clear();
+                }
+                staff.setStatus(StaffStatus.DEACTIVATED);
+                userRepository.findById(staff.getEmail())
+                        .ifPresent(userRepository::delete);
+                staffRepository.save(staff);
+            });
+        } catch (Exception e) {
+            throw new DataPersistFailedException("Failed to delete the staff");
         }
     }
+
     @Override
     public StaffDTO findStaffById(String id) {
         return staffRepository.findById(id)
