@@ -4,8 +4,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lk.ijse.Green_Shadow_Backend.customeObj.ResponseObj;
 import lk.ijse.Green_Shadow_Backend.dto.impl.*;
-import lk.ijse.Green_Shadow_Backend.exception.UserNotAcceptableException;
-import lk.ijse.Green_Shadow_Backend.exception.UserNotFoundException;
 import lk.ijse.Green_Shadow_Backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,28 +34,16 @@ public class UserController {
      * @return ResponseEntity indicating the outcome of the operation
      */
     @PutMapping(value = "/{email}",consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ResponseObj> updateUser(
+    public ResponseEntity<Void> updateUser(
             @Pattern(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$", message = "Email should be valid")
             @PathVariable ("email") String email,
             @Valid @RequestBody UserUpdateDTO userCreateDTO,
             @RequestHeader("Authorization") String authorization){
-        try {
-            log.info("Attempting to update user with email: {}", email);
-            userCreateDTO.setEmail(email);
-            userService.updateUser(userCreateDTO, authorization);
-            log.info("Successfully updated user with email: {}", email);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }catch (UserNotAcceptableException e) {
-            log.warn("User with email {} update failed. Reason: Requested user not acceptable.", email);
-            return new ResponseEntity<>(
-                    ResponseObj.builder().code(406).message("User not acceptable").build(),
-                    HttpStatus.NOT_ACCEPTABLE);
-        } catch (UserNotFoundException e) {
-            log.warn("User with email {} not found for update.", email);
-            return new ResponseEntity<>(
-                    ResponseObj.builder().code(404).message("User not found").build(),
-                    HttpStatus.NOT_FOUND);
-        }
+        log.info("Attempting to update user with email: {}", email);
+        userCreateDTO.setEmail(email);
+        userService.updateUser(userCreateDTO, authorization);
+        log.info("Successfully updated user with email: {}", email);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
     /**
      * Endpoint to delete a user based on their email.
@@ -70,15 +56,10 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(
             @Pattern(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$", message = "Email should be valid")
             @PathVariable ("email") String email){
-        try {
-            log.info("Attempting to delete user with email: {}", email);
-            userService.deleteUser(email);
-            log.info("Successfully deleted user with email: {}", email);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (UserNotFoundException e) {
-            log.warn("User with email {} not found for deletion.", email);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        log.info("Attempting to delete user with email: {}", email);
+        userService.deleteUser(email);
+        log.info("Successfully deleted user with email: {}", email);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
     /**
      * Endpoint to get all users, accessible only by users with the 'MANAGER' role.
@@ -108,13 +89,8 @@ public class UserController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<UserDTO>> filterUser(@RequestBody UserFilterDTO filterDTO) {
         log.info("Attempting to filter user with criteria: {}", filterDTO);
-        try {
-            List<UserDTO> userDTOS = userService.filterUser(filterDTO);
-            log.info("Successfully filtered user. Found {} results.", userDTOS.size());
-            return new ResponseEntity<>(userDTOS, HttpStatus.OK);
-        } catch (Exception e) {
-            log.error("Failed to filter user", e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        List<UserDTO> userDTOS = userService.filterUser(filterDTO);
+        log.info("Successfully filtered user. Found {} results.", userDTOS.size());
+        return new ResponseEntity<>(userDTOS, HttpStatus.OK);
     }
 }

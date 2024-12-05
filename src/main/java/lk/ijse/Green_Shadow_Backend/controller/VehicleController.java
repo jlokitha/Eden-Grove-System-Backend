@@ -3,14 +3,8 @@ package lk.ijse.Green_Shadow_Backend.controller;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lk.ijse.Green_Shadow_Backend.customeObj.ResponseObj;
-import lk.ijse.Green_Shadow_Backend.dto.impl.StaffDTO;
-import lk.ijse.Green_Shadow_Backend.dto.impl.StaffFilterDTO;
 import lk.ijse.Green_Shadow_Backend.dto.impl.VehicleDTO;
 import lk.ijse.Green_Shadow_Backend.dto.impl.VehicleFilterDTO;
-import lk.ijse.Green_Shadow_Backend.exception.DataPersistFailedException;
-import lk.ijse.Green_Shadow_Backend.exception.StaffNotFoundException;
-import lk.ijse.Green_Shadow_Backend.exception.VehicleAlreadyExistException;
-import lk.ijse.Green_Shadow_Backend.exception.VehicleNotFoundException;
 import lk.ijse.Green_Shadow_Backend.service.VehicleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,29 +34,12 @@ public class VehicleController {
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMINISTRATIVE')")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseObj> saveVehicle(@Valid @RequestBody VehicleDTO vehicleDTO) {
-        try {
-            log.info("Attempting to save a new vehicle with license plate number: {}", vehicleDTO.getLicensePlateNo());
-            vehicleService.saveVehicle(vehicleDTO);
-            log.info("Successfully saved vehicle with license plate number: {}", vehicleDTO.getLicensePlateNo());
-            return new ResponseEntity<>(
-                    ResponseObj.builder().code(201).message("Successfully saved vehicle").build(),
-                    HttpStatus.CREATED);
-        } catch (VehicleAlreadyExistException e) {
-            log.warn("Vehicle with license plate number already exists: {}", vehicleDTO.getLicensePlateNo());
-            return new ResponseEntity<>(
-                    ResponseObj.builder().code(400).message("Vehicle with license plate number already exists").build(),
-                    HttpStatus.BAD_REQUEST);
-        } catch (StaffNotFoundException e) {
-            log.error("Active staff not found for staffId: {}", vehicleDTO.getStaff(), e);
-            return new ResponseEntity<>(
-                    ResponseObj.builder().code(404).message("Active staff not found").build(),
-                    HttpStatus.NOT_FOUND);
-        } catch (DataPersistFailedException e) {
-            log.error("Failed to persist vehicle data for vehicle with license plate number: {}", vehicleDTO.getLicensePlateNo(), e);
-            return new ResponseEntity<>(
-                    ResponseObj.builder().code(500).message("Failed to save vehicle").build(),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        log.info("Attempting to save a new vehicle with license plate number: {}", vehicleDTO.getLicensePlateNo());
+        vehicleService.saveVehicle(vehicleDTO);
+        log.info("Successfully saved vehicle with license plate number: {}", vehicleDTO.getLicensePlateNo());
+        return new ResponseEntity<>(
+                ResponseObj.builder().code(201).message("Successfully saved vehicle").build(),
+                HttpStatus.CREATED);
     }
     /**
      * Updates an existing vehicle by ID.
@@ -73,32 +50,15 @@ public class VehicleController {
      */
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMINISTRATIVE')")
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ResponseObj> updateVehicle(
+    public ResponseEntity<Void> updateVehicle(
             @Pattern(regexp = "V-\\d{3,}", message = "ID must start with 'V-' followed by at least three digits (e.g., V-001)")
             @PathVariable("id") String vehicleCode,
             @Valid @RequestBody VehicleDTO vehicleDTO) {
-        try {
-            log.info("Attempting to update vehicle with ID: {}", vehicleCode);
-            vehicleDTO.setVehicleCode(vehicleCode);
-            vehicleService.updateVehicle(vehicleDTO);
-            log.info("Successfully updated vehicle with ID: {}", vehicleCode);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (VehicleNotFoundException e) {
-            log.warn("Vehicle not found for ID: {}", vehicleCode);
-            return new ResponseEntity<>(
-                    ResponseObj.builder().code(404).message("Vehicle not found").build(),
-                    HttpStatus.NOT_FOUND);
-        } catch (StaffNotFoundException e) {
-            log.error("Active staff not found for staffId: {}", vehicleDTO.getStaff(), e);
-            return new ResponseEntity<>(
-                    ResponseObj.builder().code(404).message("Active staff not found").build(),
-                    HttpStatus.NOT_FOUND);
-        } catch (DataPersistFailedException e) {
-            log.error("Failed to persist updated vehicle data for vehicle with ID: {}", vehicleCode, e);
-            return new ResponseEntity<>(
-                    ResponseObj.builder().code(500).message("Failed to update vehicle").build(),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        log.info("Attempting to update vehicle with ID: {}", vehicleCode);
+        vehicleDTO.setVehicleCode(vehicleCode);
+        vehicleService.updateVehicle(vehicleDTO);
+        log.info("Successfully updated vehicle with ID: {}", vehicleCode);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
     /**
      * Deletes a vehicle by ID.
@@ -108,21 +68,13 @@ public class VehicleController {
      */
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMINISTRATIVE')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<ResponseObj> deleteVehicle(
+    public ResponseEntity<Void> deleteVehicle(
             @Pattern(regexp = "V-\\d{3,}", message = "ID must start with 'V-' followed by at least three digits (e.g., V-001)")
             @PathVariable("id") String vehicleCode) {
-        try {
-            log.info("Attempting to delete vehicle with ID: {}", vehicleCode);
-            vehicleService.deleteVehicle(vehicleCode);
-            log.info("Successfully deleted vehicle with ID: {}", vehicleCode);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.warn("Vehicle not found for ID: {}", vehicleCode);
-            return new ResponseEntity<>(
-                    ResponseObj.builder().code(404).message("Vehicle not found").build(),
-                    HttpStatus.NOT_FOUND);
-        }
+        log.info("Attempting to delete vehicle with ID: {}", vehicleCode);
+        vehicleService.deleteVehicle(vehicleCode);
+        log.info("Successfully deleted vehicle with ID: {}", vehicleCode);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
     /**
      * Retrieves a vehicle by ID.
@@ -134,15 +86,10 @@ public class VehicleController {
     public ResponseEntity<VehicleDTO> findVehicle(
             @Pattern(regexp = "V-\\d{3,}", message = "ID must start with 'V-' followed by at least three digits (e.g., V-001)")
             @PathVariable("id") String vehicleCode) {
-        try {
-            log.info("Attempting to find vehicle with ID: {}", vehicleCode);
-            VehicleDTO vehicle = vehicleService.findVehicleById(vehicleCode);
-            log.info("Successfully found vehicle with ID: {}", vehicleCode);
-            return new ResponseEntity<>(vehicle, HttpStatus.OK);
-        } catch (VehicleNotFoundException e) {
-            log.warn("Vehicle not found for ID: {}", vehicleCode);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        log.info("Attempting to find vehicle with ID: {}", vehicleCode);
+        VehicleDTO vehicle = vehicleService.findVehicleById(vehicleCode);
+        log.info("Successfully found vehicle with ID: {}", vehicleCode);
+        return new ResponseEntity<>(vehicle, HttpStatus.OK);
     }
     /**
      * Retrieves all vehicles from the database.
@@ -170,13 +117,8 @@ public class VehicleController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<VehicleDTO>> filterVehicle(@RequestBody VehicleFilterDTO filterDTO) {
         log.info("Attempting to filter vehicles with criteria: {}", filterDTO);
-        try {
-            List<VehicleDTO> vehicleDTOS = vehicleService.filterVehicle(filterDTO);
-            log.info("Successfully filtered vehicles. Found {} results.", vehicleDTOS.size());
-            return new ResponseEntity<>(vehicleDTOS, HttpStatus.OK);
-        } catch (Exception e) {
-            log.error("Failed to filter vehicles", e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        List<VehicleDTO> vehicleDTOS = vehicleService.filterVehicle(filterDTO);
+        log.info("Successfully filtered vehicles. Found {} results.", vehicleDTOS.size());
+        return new ResponseEntity<>(vehicleDTOS, HttpStatus.OK);
     }
 }
