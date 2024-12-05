@@ -77,7 +77,7 @@ public class AuthenticationServiceIMPL implements AuthenticationService {
                     .orElseThrow(() -> new UserNotFoundException("User not found"));
             String generatedToken = jwtService.generateToken(userByEmail);
             return JwtAuthResponse.builder().token(generatedToken).build();
-        } catch (BadCredentialsException e) {
+        } catch (Exception e) {
             throw new BadCredentialsException("Invalid credentials");
         }
     }

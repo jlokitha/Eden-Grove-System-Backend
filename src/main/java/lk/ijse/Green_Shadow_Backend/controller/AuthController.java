@@ -3,7 +3,6 @@ package lk.ijse.Green_Shadow_Backend.controller;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lk.ijse.Green_Shadow_Backend.dto.impl.UserCreateDTO;
-import lk.ijse.Green_Shadow_Backend.exception.*;
 import lk.ijse.Green_Shadow_Backend.jwtmodels.JwtAuthResponse;
 import lk.ijse.Green_Shadow_Backend.jwtmodels.SignIn;
 import lk.ijse.Green_Shadow_Backend.service.AuthenticationService;
@@ -12,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,24 +35,10 @@ public class AuthController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<JwtAuthResponse> signUp(@Valid @RequestBody UserCreateDTO userCreateDTO) {
-        try {
-            log.info("Attempting to sign up user with email: {}", userCreateDTO.getEmail());
-            JwtAuthResponse response = authenticationService.signUp(userCreateDTO);
-            log.info("Successfully signed up user with email: {}", userCreateDTO.getEmail());
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
-        } catch (InvalidOtpException e) {
-            log.warn("Invalid OTP provided for email: {}", userCreateDTO.getEmail());
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } catch (UserAlreadyExistException e) {
-            log.warn("User already exists with email: {}", userCreateDTO.getEmail());
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
-        } catch (StaffNotFoundException e) {
-            log.error("Staff not found while registering user with email: {}", userCreateDTO.getEmail(), e);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (UserNotAcceptableException e) {
-            log.error("Staff not acceptable while registering user with email: {}", userCreateDTO.getEmail(), e);
-            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
-        }
+        log.info("Attempting to sign up user with email: {}", userCreateDTO.getEmail());
+        JwtAuthResponse response = authenticationService.signUp(userCreateDTO);
+        log.info("Successfully signed up user with email: {}", userCreateDTO.getEmail());
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
     /**
      * Handles user sign-in by validating the credentials and returning a JWT token.
@@ -67,18 +51,10 @@ public class AuthController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<JwtAuthResponse> signIn(@Valid @RequestBody SignIn signIn) {
-        try {
-            log.info("Attempting to sign in user with email: {}", signIn.getEmail());
-            JwtAuthResponse jwtAuthResponse = authenticationService.signIn(signIn);
-            log.info("Successfully signed in user with email: {}", signIn.getEmail());
-            return new ResponseEntity<>(jwtAuthResponse, HttpStatus.OK);
-        } catch (UserNotFoundException e) {
-            log.warn("User not found with email: {}", signIn.getEmail());
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (BadCredentialsException e) {
-            log.warn("Invalid credentials provided for user with email: {}", signIn.getEmail());
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+        log.info("Attempting to sign in user with email: {}", signIn.getEmail());
+        JwtAuthResponse jwtAuthResponse = authenticationService.signIn(signIn);
+        log.info("Successfully signed in user with email: {}", signIn.getEmail());
+        return new ResponseEntity<>(jwtAuthResponse, HttpStatus.OK);
     }
     /**
      * Handles the password reset request by verifying the OTP and resetting the user's password.
@@ -90,18 +66,10 @@ public class AuthController {
             value = "/reset_password",
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> resetPassword(@Valid @RequestBody UserCreateDTO userCreateDTO) {
-        try {
-            log.info("Attempting to reset password for email: {}", userCreateDTO.getEmail());
-            authenticationService.resetUserPassword(userCreateDTO);
-            log.info("Successfully reset password for email: {}", userCreateDTO.getEmail());
-            return new ResponseEntity<>(HttpStatus.OK);
-        } catch (InvalidOtpException e) {
-            log.warn("Invalid OTP provided for email: {}", userCreateDTO.getEmail());
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } catch (UserNotFoundException e) {
-            log.warn("User not found for email: {}", userCreateDTO.getEmail());
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        log.info("Attempting to reset password for email: {}", userCreateDTO.getEmail());
+        authenticationService.resetUserPassword(userCreateDTO);
+        log.info("Successfully reset password for email: {}", userCreateDTO.getEmail());
+        return new ResponseEntity<>(HttpStatus.OK);
     }
     /**
      * Sends an OTP to the user's email for verification.
@@ -118,9 +86,6 @@ public class AuthController {
             authenticationService.verifyUserEmail(email);
             log.info("Successfully sent OTP for email: {}", email);
             return new ResponseEntity<>(HttpStatus.OK);
-        } catch (StaffNotFoundException e) {
-            log.warn("User not found for email: {}", email);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (MessagingException | IOException e) {
             log.error("Error during email verification for email: {}. Error: {}", email, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -136,14 +101,9 @@ public class AuthController {
             value = "/refresh",
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<JwtAuthResponse> refreshToken (@RequestParam ("token") String token) {
-        try {
-            log.info("Attempting to refresh token with provided token.");
-            JwtAuthResponse jwtAuthResponse = authenticationService.refreshToken(token);
-            log.info("Successfully refreshed token.");
-            return new ResponseEntity<>(jwtAuthResponse, HttpStatus.OK);
-        } catch (UserNotFoundException e) {
-            log.warn("User not found for refresh token request.");
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        log.info("Attempting to refresh token with provided token.");
+        JwtAuthResponse jwtAuthResponse = authenticationService.refreshToken(token);
+        log.info("Successfully refreshed token.");
+        return new ResponseEntity<>(jwtAuthResponse, HttpStatus.OK);
     }
 }

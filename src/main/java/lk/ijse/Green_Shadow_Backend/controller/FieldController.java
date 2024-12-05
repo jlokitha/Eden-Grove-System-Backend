@@ -3,7 +3,6 @@ package lk.ijse.Green_Shadow_Backend.controller;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lk.ijse.Green_Shadow_Backend.dto.impl.*;
-import lk.ijse.Green_Shadow_Backend.exception.*;
 import lk.ijse.Green_Shadow_Backend.service.FieldService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,18 +32,10 @@ public class FieldController {
     @PreAuthorize("hasAnyRole('MANAGER', 'SCIENTIST')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> saveField(@Valid @ModelAttribute FieldCreateDTO fieldDTO) {
-        try {
-            log.info("Attempting to save a new field with name: {}", fieldDTO.getFieldName());
-            fieldService.saveField(fieldDTO);
-            log.info("Successfully saved field with name: {}", fieldDTO.getFieldName());
-            return new ResponseEntity<>(HttpStatus.CREATED);
-        } catch (FieldNameAlreadyExistException e) {
-            log.warn("Field name already exists: {}", fieldDTO.getFieldName());
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } catch (DataPersistFailedException e) {
-            log.error("Failed to persist field data for field name: {}", fieldDTO.getFieldName(), e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        log.info("Attempting to save a new field with name: {}", fieldDTO.getFieldName());
+        fieldService.saveField(fieldDTO);
+        log.info("Successfully saved field with name: {}", fieldDTO.getFieldName());
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
     /**
      * Updates an existing field with the provided details.
@@ -59,19 +50,11 @@ public class FieldController {
             @Pattern(regexp = "F-\\d{3,}", message = "ID must start with 'F-' followed by at least three digits (e.g., F-001)")
             @PathVariable("id") String fieldId,
             @Valid @ModelAttribute FieldCreateDTO fieldDTO) {
-        try {
-            log.info("Attempting to update field with ID: {}", fieldId);
-            fieldDTO.setFCode(fieldId);
-            fieldService.updateField(fieldDTO);
-            log.info("Successfully updated field with ID: {}", fieldId);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (FieldNotFoundException e) {
-            log.warn("Field,  not found with ID: {}", fieldId);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (DataPersistFailedException e) {
-            log.error("Failed to persist updated field data for ID: {}", fieldId, e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        log.info("Attempting to update field with ID: {}", fieldId);
+        fieldDTO.setFCode(fieldId);
+        fieldService.updateField(fieldDTO);
+        log.info("Successfully updated field with ID: {}", fieldId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
     /**
      * Deletes a field with the specified ID.
@@ -84,15 +67,10 @@ public class FieldController {
     public ResponseEntity<Void> deleteField(
             @Pattern(regexp = "F-\\d{3,}", message = "ID must start with 'F-' followed by at least three digits (e.g., F-001)")
             @PathVariable("id") String fieldId) {
-        try {
-            log.info("Attempting to delete field with ID: {}", fieldId);
-            fieldService.deleteField(fieldId);
-            log.info("Successfully deleted field with ID: {}", fieldId);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (FieldNotFoundException e) {
-            log.warn("Field not found for deletion with ID: {}", fieldId);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        log.info("Attempting to delete field with ID: {}", fieldId);
+        fieldService.deleteField(fieldId);
+        log.info("Successfully deleted field with ID: {}", fieldId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
     /**
      * Retrieves a field by its ID.
@@ -104,15 +82,10 @@ public class FieldController {
     public ResponseEntity<FieldDTO> findFieldById(
             @Pattern(regexp = "F-\\d{3,}", message = "ID must start with 'F-' followed by at least three digits (e.g., F-001)")
             @PathVariable("id") String fieldId) {
-        try {
-            log.info("Attempting to find field with ID: {}", fieldId);
-            FieldDTO fieldDTO = fieldService.findFieldById(fieldId);
-            log.info("Field found with ID: {}", fieldId);
-            return new ResponseEntity<>(fieldDTO, HttpStatus.OK);
-        } catch (FieldNotFoundException e) {
-            log.warn("Field not found for ID: {}", fieldId);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        log.info("Attempting to find field with ID: {}", fieldId);
+        FieldDTO fieldDTO = fieldService.findFieldById(fieldId);
+        log.info("Field found with ID: {}", fieldId);
+        return new ResponseEntity<>(fieldDTO, HttpStatus.OK);
     }
     /**
      * Retrieves a list of all fields.
@@ -147,13 +120,8 @@ public class FieldController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<FieldDTO>> filterField(@RequestBody FieldFilterDTO filterDTO) {
         log.info("Attempting to filter field with criteria: {}", filterDTO);
-        try {
-            List<FieldDTO> fieldDTOS = fieldService.filterFields(filterDTO);
-            log.info("Successfully filtered fields. Found {} results.", fieldDTOS.size());
-            return new ResponseEntity<>(fieldDTOS, HttpStatus.OK);
-        } catch (Exception e) {
-            log.error("Failed to filter field", e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        List<FieldDTO> fieldDTOS = fieldService.filterFields(filterDTO);
+        log.info("Successfully filtered fields. Found {} results.", fieldDTOS.size());
+        return new ResponseEntity<>(fieldDTOS, HttpStatus.OK);
     }
 }

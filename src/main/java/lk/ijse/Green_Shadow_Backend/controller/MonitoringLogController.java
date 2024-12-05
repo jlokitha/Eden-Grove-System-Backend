@@ -33,18 +33,10 @@ public class MonitoringLogController {
     @PreAuthorize("hasAnyRole('MANAGER', 'SCIENTIST')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> saveMonitoringLog(@Valid @ModelAttribute MonitoringLogCreateDTO monitoringLogDTO) {
-        try {
-            log.info("Attempting to save a new monitoring log for field: {}", monitoringLogDTO.getFieldCode());
-            monitoringLogService.saveMonitoringLog(monitoringLogDTO);
-            log.info("Successfully saved monitoring log for field: {}", monitoringLogDTO.getFieldCode());
-            return new ResponseEntity<>(HttpStatus.CREATED);
-        } catch (StaffNotFoundException | CropNotFoundException | FieldNotFoundException e) {
-            log.warn("Related entity not found for monitoring log: {}", e.getClass().getSimpleName());
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (DataPersistFailedException e) {
-            log.error("Failed to save monitoring log for field: {}", monitoringLogDTO.getFieldCode(), e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        log.info("Attempting to save a new monitoring log for field: {}", monitoringLogDTO.getFieldCode());
+        monitoringLogService.saveMonitoringLog(monitoringLogDTO);
+        log.info("Successfully saved monitoring log for field: {}", monitoringLogDTO.getFieldCode());
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
     /**
      * Updates an existing monitoring log with the provided details.
@@ -59,19 +51,11 @@ public class MonitoringLogController {
             @Pattern(regexp = "L-\\d{3,}", message = "ID must start with 'L-' followed by at least three digits (e.g., L-001)")
             @PathVariable("id") String id,
             @Valid @ModelAttribute MonitoringLogCreateDTO monitoringLogDTO) {
-        try {
-            log.info("Attempting to update monitoring log with ID: {}", id);
-            monitoringLogDTO.setLogCode(id);
-            monitoringLogService.updateMonitoringLog(monitoringLogDTO);
-            log.info("Successfully updated monitoring log with ID: {}", id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (MonitoringLogNotFoundException | StaffNotFoundException | CropNotFoundException | FieldNotFoundException e) {
-            log.warn("Entity not found during update for monitoring log ID: {} - Exception: {}", id, e.getClass().getSimpleName());
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (DataPersistFailedException e) {
-            log.error("Failed to update monitoring log with ID: {}", id, e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        log.info("Attempting to update monitoring log with ID: {}", id);
+        monitoringLogDTO.setLogCode(id);
+        monitoringLogService.updateMonitoringLog(monitoringLogDTO);
+        log.info("Successfully updated monitoring log with ID: {}", id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
     /**
      * Retrieves a monitoring log by its ID.
@@ -83,15 +67,10 @@ public class MonitoringLogController {
     public ResponseEntity<?> findMonitoringLog(
             @Pattern(regexp = "L-\\d{3,}", message = "ID must start with 'L-' followed by at least three digits (e.g., L-001)")
             @PathVariable("id") String id) {
-        try {
-            log.info("Attempting to retrieve monitoring log with ID: {}", id);
-            MonitoringLogDTO logDTO = monitoringLogService.findMonitoringLogById(id);
-            log.info("Successfully retrieved monitoring log with ID: {}", id);
-            return new ResponseEntity<>(logDTO, HttpStatus.OK);
-        } catch (MonitoringLogNotFoundException e) {
-            log.warn("Monitoring log not found with ID: {}", id);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        log.info("Attempting to retrieve monitoring log with ID: {}", id);
+        MonitoringLogDTO logDTO = monitoringLogService.findMonitoringLogById(id);
+        log.info("Successfully retrieved monitoring log with ID: {}", id);
+        return new ResponseEntity<>(logDTO, HttpStatus.OK);
     }
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> findAllMonitoringLogs(
@@ -121,13 +100,8 @@ public class MonitoringLogController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<MonitoringLogDTO>> filterField(@RequestBody MonitoringLogFilterDTO filterDTO) {
         log.info("Attempting to filter field with criteria: {}", filterDTO);
-        try {
-            List<MonitoringLogDTO> logDtoS = monitoringLogService.filterMonitoringLogs(filterDTO);
-            log.info("Successfully filtered fields. Found {} results.", logDtoS.size());
-            return new ResponseEntity<>(logDtoS, HttpStatus.OK);
-        } catch (Exception e) {
-            log.error("Failed to filter field", e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        List<MonitoringLogDTO> logDtoS = monitoringLogService.filterMonitoringLogs(filterDTO);
+        log.info("Successfully filtered fields. Found {} results.", logDtoS.size());
+        return new ResponseEntity<>(logDtoS, HttpStatus.OK);
     }
 }
